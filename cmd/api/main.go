@@ -13,12 +13,8 @@ import (
 func main() {
 	viper.SetConfigFile(".env")
 	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			log.Printf("config file not found; skipping: %+v\n", err)
-		} else {
-			log.Printf("failed to read config: %+v\n", err)
-			os.Exit(1)
-		}
+		log.Printf("failed to read config: %+v\n", err)
+		os.Exit(1)
 	}
 	if err := st.Init(st.ClientOptions{
 		Dsn:           viper.GetString("SENTRY_DSN"),

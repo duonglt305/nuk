@@ -4,12 +4,13 @@
 package nuk
 
 import (
+	"duonglt.net/pkg/http"
 	"github.com/google/wire"
 )
 
-func InitializeRouter() (Router, error) {
+func InitializeRouter() (*http.Router, error) {
 	wire.Build(
-		NewRouter,
+		http.NewRouter,
 	)
-	return Router{}, nil
+	return &http.Router{}, nil
 }
