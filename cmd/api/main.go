@@ -5,14 +5,25 @@ import (
 	"os"
 
 	st "github.com/getsentry/sentry-go"
+	"github.com/spf13/viper"
 
 	"duonglt.net/internal/nuk"
 )
 
 func main() {
+	viper.SetConfigFile(".env")
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			log.Printf("config file not found; skipping: %+v\n", err)
+		} else {
+			log.Printf("failed to read config: %+v\n", err)
+			os.Exit(1)
+		}
+	}
 	if err := st.Init(st.ClientOptions{
-		Dsn:           "https://f56b7dbc9705eaeb3408b5a223437b85@o4504060703997952.ingest.sentry.io/4506790022414336",
+		Dsn:           viper.GetString("SENTRY_DSN"),
 		EnableTracing: true,
+		Environment:   viper.GetString("SENTRY_ENVIRONMENT"),
 		// Set TracesSampleRate to 1.0 to capture 100%
 		// of transactions for performance monitoring.
 		// We recommend adjusting this value in production,
