@@ -10,6 +10,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 type Router struct {
@@ -23,7 +25,7 @@ func NewRouter() Router {
 
 func (r Router) ServeHTTP() error {
 	sv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", 8080),
+		Addr:    fmt.Sprintf(":%d", viper.GetInt("PORT")),
 		Handler: r.Mux,
 	}
 	go func() {
