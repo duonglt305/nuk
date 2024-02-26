@@ -16,16 +16,19 @@ func main() {
 		log.Printf("failed to read config: %+v\n", err)
 		os.Exit(1)
 	}
-	if err := st.Init(st.ClientOptions{
-		Dsn:           viper.GetString("SENTRY_DSN"),
-		EnableTracing: true,
-		Environment:   viper.GetString("SENTRY_ENVIRONMENT"),
-		// Set TracesSampleRate to 1.0 to capture 100%
-		// of transactions for performance monitoring.
-		// We recommend adjusting this value in production,
-		TracesSampleRate: 1.0,
-	}); err != nil {
-		log.Printf("failed to initialize sentry: %v\n", err)
+	dns := viper.GetString("SENTRY_DSN")
+	if dns != "" {
+		if err := st.Init(st.ClientOptions{
+			Dsn:           viper.GetString("SENTRY_DSN"),
+			EnableTracing: true,
+			Environment:   viper.GetString("SENTRY_ENVIRONMENT"),
+			// Set TracesSampleRate to 1.0 to capture 100%
+			// of transactions for performance monitoring.
+			// We recommend adjusting this value in production,
+			TracesSampleRate: 1.0,
+		}); err != nil {
+			log.Printf("failed to initialize sentry: %v\n", err)
+		}
 	}
 
 	r, err := nuk.InitializeRouter()
