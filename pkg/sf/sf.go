@@ -1,8 +1,11 @@
 package sf
 
 import (
+	"log"
 	"sync"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 const (
@@ -25,10 +28,14 @@ var sfOnce sync.Once
 
 func New() int64 {
 	sfOnce.Do(func() {
+		worker := viper.GetInt("worker")
+		if worker < 0 || worker >= (1<<SF_WORKER_BITS) {
+			log.Fatalf("worker must be between 0 and %d", (1<<SF_WORKER_BITS)-1)
+		}
 		sfIns = &Snowflake{
 			timestamp: -1,
 			sequence:  0,
-			worker:    0,
+			worker:    int16(worker),
 		}
 	})
 	return sfIns.Next()
