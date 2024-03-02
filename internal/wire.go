@@ -1,7 +1,7 @@
 //go:build wireinject
 // +build wireinject
 
-package nuk
+package internal
 
 import (
 	"duonglt.net/pkg/http"

@@ -1,43 +1,54 @@
 package main
 
 import (
-	"log"
-	"os"
+	"fmt"
+	"time"
 
-	st "github.com/getsentry/sentry-go"
-	"github.com/spf13/viper"
-
-	"duonglt.net/internal/nuk"
+	app_services "duonglt.net/internal/application/services"
+	infra_services "duonglt.net/internal/infras/services"
+	"duonglt.net/pkg/sf"
 )
 
 func main() {
-	viper.SetConfigFile(".env")
-	if err := viper.ReadInConfig(); err != nil {
-		log.Printf("failed to read config: %+v\n", err)
-		os.Exit(1)
-	}
-	dns := viper.GetString("SENTRY_DSN")
-	if dns != "" {
-		if err := st.Init(st.ClientOptions{
-			Dsn:           viper.GetString("SENTRY_DSN"),
-			EnableTracing: true,
-			Environment:   viper.GetString("SENTRY_ENVIRONMENT"),
-			// Set TracesSampleRate to 1.0 to capture 100%
-			// of transactions for performance monitoring.
-			// We recommend adjusting this value in production,
-			TracesSampleRate: 1.0,
-		}); err != nil {
-			log.Printf("failed to initialize sentry: %v\n", err)
-		}
-	}
+	app_services.NewAuthService()
 
-	r, err := nuk.InitializeRouter()
+	j := infra_services.NewJWTService[int64](
+		[]byte("secret"), "nuk", 24*time.Hour,
+	)
+	tk, _ := j.Create(sf.New())
+	id, err := j.Parse(tk)
 	if err != nil {
-		log.Printf("failed to initialize router: %+v\n", err)
-		os.Exit(1)
+		fmt.Printf("failed to parse token: %+v\n", err)
+		return
 	}
-	if err := r.ServeHTTP(); err != nil {
-		log.Printf("failed to serve http: %+v\n", err)
-		os.Exit(1)
-	}
+	println(*id)
+	// viper.SetConfigFile(".env")
+	// if err := viper.ReadInConfig(); err != nil {
+	// 	log.Printf("failed to read config: %+v\n", err)
+	// 	os.Exit(1)
+	// }
+	// dns := viper.GetString("SENTRY_DSN")
+	// if dns != "" {
+	// 	if err := st.Init(st.ClientOptions{
+	// 		Dsn:           viper.GetString("SENTRY_DSN"),
+	// 		EnableTracing: true,
+	// 		Environment:   viper.GetString("SENTRY_ENVIRONMENT"),
+	// 		// Set TracesSampleRate to 1.0 to capture 100%
+	// 		// of transactions for performance monitoring.
+	// 		// We recommend adjusting this value in production,
+	// 		TracesSampleRate: 1.0,
+	// 	}); err != nil {
+	// 		log.Printf("failed to initialize sentry: %v\n", err)
+	// 	}
+	// }
+
+	// r, err := internal.InitializeRouter()
+	// if err != nil {
+	// 	log.Printf("failed to initialize router: %+v\n", err)
+	// 	os.Exit(1)
+	// }
+	// if err := r.ServeHTTP(); err != nil {
+	// 	log.Printf("failed to serve http: %+v\n", err)
+	// 	os.Exit(1)
+	// }
 }
