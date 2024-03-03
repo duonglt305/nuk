@@ -5,15 +5,15 @@ import (
 	"time"
 
 	app_services "duonglt.net/internal/application/services"
-	infra_services "duonglt.net/internal/infras/services"
+	inf_services "duonglt.net/internal/infrastructure/services"
 	"duonglt.net/pkg/sf"
 )
 
 func main() {
 	app_services.NewAuthService()
 
-	j := infra_services.NewJWTService[int64](
-		[]byte("secret"), "nuk", 24*time.Hour,
+	j := inf_services.NewJWTService[int64](
+		[]byte("secret"), 24*time.Hour,
 	)
 	tk, _ := j.Create(sf.New())
 	id, err := j.Parse(tk)

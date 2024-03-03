@@ -3,7 +3,6 @@ module duonglt.net
 go 1.22.0
 
 require (
-	github.com/getsentry/sentry-go v0.27.0
 	github.com/google/wire v0.6.0
 	github.com/spf13/viper v1.18.2
 )
