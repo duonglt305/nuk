@@ -16,6 +16,7 @@ type JWTService[T int64 | string] struct {
 	secretKey []byte
 	lifetime  time.Duration
 }
+
 type jwtClaims[T int64 | string] struct {
 	ID T `json:"id"`
 	jwt.MapClaims
