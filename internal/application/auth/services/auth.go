@@ -5,12 +5,12 @@ import (
 )
 
 type AuthService struct {
-	jwtService *infra_services.JWTService[int64]
+	tokenService *infra_services.TokenService[int64]
 }
 
-func NewAuthService(jwtService *infra_services.JWTService[int64]) *AuthService {
+func NewAuthService(tokenService *infra_services.TokenService[int64]) *AuthService {
 	return &AuthService{
-		jwtService: jwtService,
+		tokenService: tokenService,
 	}
 
 }
