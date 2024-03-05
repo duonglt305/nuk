@@ -11,11 +11,12 @@ type AuthHttp struct {
 	tokenCreateHandler tokenCreateHandler
 }
 
-func NewAuthHttpHandler(authService auth_services.AuthService) AuthHttp {
+func NewAuthHttp(authService auth_services.AuthService) AuthHttp {
 	return AuthHttp{
 		tokenCreateHandler: newTokenCreateHandler(authService),
 	}
 }
+
 func (h AuthHttp) RegisterHandlers(mux *http.ServeMux) {
 	mux.Handle("GET /token", h.tokenCreateHandler)
 }
