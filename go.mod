@@ -3,13 +3,13 @@ module duonglt.net
 go 1.22.0
 
 require (
-	github.com/getsentry/sentry-go v0.27.0
 	github.com/google/wire v0.6.0
 	github.com/spf13/viper v1.18.2
 )
 
 require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
