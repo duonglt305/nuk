@@ -1,10 +1,10 @@
-package auth_repositories
+package authRepositories
 
 import (
-	auth_entities "duonglt.net/internal/domain/auth/entities"
+	authEntities "duonglt.net/internal/domain/auth/entities"
 )
 
 type UserRepository interface {
-	FindByEmail(email string) (*auth_entities.User, error)
-	Create(user *auth_entities.User) (uint64, error)
+	FindByEmail(email string) (*authEntities.User, error)
+	Create(user *authEntities.User) (uint64, error)
 }
