@@ -1,22 +1,21 @@
-package auth_services
+package authServices
 
 import (
-	"fmt"
-
-	auth_repositories "duonglt.net/internal/infrastructure/auth/repositories/pg"
-	infra_services "duonglt.net/internal/infrastructure/services"
+	authRepositories "duonglt.net/internal/domain/auth/repositories"
+	infraServices "duonglt.net/internal/infrastructure/services"
+	"github.com/spf13/viper"
 )
 
 // AuthService struct is used to define auth service
 type AuthService struct {
-	tokenService    *infra_services.TokenService[uint64]
-	tokenRepository auth_repositories.TokenRepository
+	tokenService    *infraServices.TokenService[uint64]
+	tokenRepository authRepositories.TokenRepository
 }
 
 // NewAuthService function is used to create a new auth service
 func NewAuthService(
-	tokenService *infra_services.TokenService[uint64],
-	tokenRepository auth_repositories.TokenRepository,
+	tokenService *infraServices.TokenService[uint64],
+	tokenRepository authRepositories.TokenRepository,
 ) AuthService {
 	return AuthService{
 		tokenService:    tokenService,
@@ -26,12 +25,12 @@ func NewAuthService(
 
 // CreateToken function is used to create a new token
 func (s AuthService) CreateToken(uid uint64) (string, error) {
-	token, err := s.tokenRepository.CreateToken(uid)
+	token, err := s.tokenRepository.Create(uid)
 	if err != nil {
 		return "", err
 	}
-	fmt.Printf("token: %+v\n", token)
-	return s.tokenService.Create(token.ID)
+	expiresAt := token.CreatedAt.Add(viper.GetDuration("JWT_ACCESS_TOKEN_LIFETIME"))
+	return s.tokenService.Create(token.Uid, expiresAt)
 }
 
 // VerifyToken function is used to verify token

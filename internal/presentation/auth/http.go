@@ -1,17 +1,17 @@
-package presentation_auth
+package presentation
 
 import (
 	"encoding/json"
 	"net/http"
 
-	auth_services "duonglt.net/internal/application/auth/services"
+	authServices "duonglt.net/internal/application/auth/services"
 )
 
 type AuthHttp struct {
 	tokenCreateHandler tokenCreateHandler
 }
 
-func NewAuthHttp(authService auth_services.AuthService) AuthHttp {
+func NewAuthHttp(authService authServices.AuthService) AuthHttp {
 	return AuthHttp{
 		tokenCreateHandler: newTokenCreateHandler(authService),
 	}
@@ -22,10 +22,10 @@ func (h AuthHttp) RegisterHandlers(mux *http.ServeMux) {
 }
 
 type tokenCreateHandler struct {
-	authService auth_services.AuthService
+	authService authServices.AuthService
 }
 
-func newTokenCreateHandler(authService auth_services.AuthService) tokenCreateHandler {
+func newTokenCreateHandler(authService authServices.AuthService) tokenCreateHandler {
 	return tokenCreateHandler{authService: authService}
 }
 
@@ -36,6 +36,9 @@ func (h tokenCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	b, _ := json.Marshal(map[string]any{"token": token})
-	w.Write(b)
+	b, _ := json.Marshal(map[string]string{"access_token": token})
+	if _, err = w.Write(b); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

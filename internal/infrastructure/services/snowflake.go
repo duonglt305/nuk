@@ -1,4 +1,4 @@
-package infra_services
+package infraServices
 
 import (
 	"sync"
