@@ -7,6 +7,12 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// TokenClaims is a struct for token claims
+type TokenClaims[T any] struct {
+	ID T `json:"id"`
+	jwt.MapClaims
+}
+
 // ITokenService is an interface for token service
 type ITokenService[T any] interface {
 	Create(id T) (string, error)
@@ -18,12 +24,6 @@ type ITokenService[T any] interface {
 type TokenService[T any] struct {
 	secretKey []byte
 	lifetime  time.Duration
-}
-
-// TokenClaims is a struct for token claims
-type TokenClaims[T any] struct {
-	ID T `json:"id"`
-	jwt.MapClaims
 }
 
 // NewTokenService creates a new token service
