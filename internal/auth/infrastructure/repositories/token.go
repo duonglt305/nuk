@@ -1,10 +1,6 @@
 package authRepositories
 
 import (
-	"context"
-	"fmt"
-	"time"
-
 	"github.com/redis/go-redis/v9"
 
 	authEntities "duonglt.net/internal/auth/domain/entities"
@@ -28,14 +24,7 @@ func NewTokenRepository(
 
 // Create function is used to create a new token
 func (r TokenRepository) Create(uid uint64) (*authEntities.Token, error) {
-	createdAt := time.Now().UTC()
-	tk := &authEntities.Token{
-		ID:        r.sfService.New(),
-		Uid:       uid,
-		CreatedAt: &createdAt,
-	}
-	r.rdb.Set(context.Background(), fmt.Sprintf("token:%d", tk.Uid), tk, -1)
-	return tk, nil
+	return &authEntities.Token{}, nil
 }
 
 func (r TokenRepository) Get(uid uint64) (*authEntities.Token, error) {
