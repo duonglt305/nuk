@@ -13,8 +13,8 @@ import (
 // InitializeRouter function is used to initialize router
 func InitializeRouter() (*sharedPresentation.Router, error) {
 	wire.Build(
-		shared.SharedSet,
-		auth.AuthSet,
+		shared.WireSet,
+		auth.WireSet,
 	)
 	return &sharedPresentation.Router{}, nil
 }

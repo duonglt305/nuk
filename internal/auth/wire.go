@@ -10,13 +10,14 @@ import (
 	"github.com/spf13/viper"
 )
 
-var AuthSet = wire.NewSet(
+// WireSet is used to wire the dependencies of auth module
+var WireSet = wire.NewSet(
 	ResolveAuthService,
 	authPresentation.NewHttp,
 	authInfrastructureRepositories.NewTokenRepository,
 )
 
-// resolveAuthService function is used to resolve auth service
+// ResolveAuthService function is used to resolve auth service
 func ResolveAuthService(
 	tokenService *sharedServices.TokenService[uint64],
 	tokenRepository authRepositories.ITokenRepository,

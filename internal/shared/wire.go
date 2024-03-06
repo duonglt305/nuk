@@ -9,25 +9,25 @@ import (
 	"github.com/spf13/viper"
 )
 
-// SharedSet variable is used to define wire set
-var SharedSet = wire.NewSet(
+// WireSet variable is used to define wire set
+var WireSet = wire.NewSet(
 	ResolveRedisClient,
 	ResolveTokenService,
 	ResolveSnowflakeService,
 	sharedPresentation.NewRouter,
 )
 
-// resolveSnowflakeService function is used to resolve snowflake service
+// ResolveSnowflakeService function is used to resolve snowflake service
 func ResolveSnowflakeService() *sharedServices.SfService {
 	return sharedServices.NewSfService(uint16(viper.GetInt("SF_WORKER")))
 }
 
-// resolveTokenService function is used to resolve token service
+// ResolveTokenService function is used to resolve token service
 func ResolveTokenService() *sharedServices.TokenService[uint64] {
 	return sharedServices.NewTokenService[uint64]([]byte(viper.GetString("JWT_SECRET")))
 }
 
-// resolveRedisClient function is used to resolve redis client
+// ResolveRedisClient function is used to resolve redis client
 func ResolveRedisClient() *redis.Client {
 	return sharedInfrastructure.NewRedisClient(viper.GetString("REDIS_URL"))
 }
