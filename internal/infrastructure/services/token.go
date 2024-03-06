@@ -1,4 +1,4 @@
-package infra_services
+package infraServices
 
 import (
 	"fmt"
@@ -7,9 +7,15 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// TokenClaims is a struct for token claims
+type TokenClaims[T any] struct {
+	ID T `json:"id"`
+	jwt.MapClaims
+}
+
 // ITokenService is an interface for token service
 type ITokenService[T any] interface {
-	Create(id T) (string, error)
+	Create(id T, expiresAt time.Time) (string, error)
 	GetID(token string) (*T, error)
 	ExtractClaims(token string) (*TokenClaims[T], error)
 }
@@ -17,33 +23,24 @@ type ITokenService[T any] interface {
 // TokenService is a service for creating and extracting tokens
 type TokenService[T any] struct {
 	secretKey []byte
-	lifetime  time.Duration
-}
-
-// TokenClaims is a struct for token claims
-type TokenClaims[T any] struct {
-	ID T `json:"id"`
-	jwt.MapClaims
 }
 
 // NewTokenService creates a new token service
 func NewTokenService[T any](
 	secretKey []byte,
-	lifetime time.Duration,
 ) *TokenService[T] {
 	return &TokenService[T]{
 		secretKey: secretKey,
-		lifetime:  lifetime,
 	}
 }
 
 // Create creates a new token
-func (s *TokenService[T]) Create(id T) (string, error) {
+func (s *TokenService[T]) Create(id T, expiresAt time.Time) (string, error) {
 	now := time.Now().UTC()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, TokenClaims[T]{
 		ID: id,
 		MapClaims: jwt.MapClaims{
-			"exp": now.Add(s.lifetime).Unix(),
+			"exp": expiresAt.Unix(),
 			"iat": now.Unix(),
 			"nbf": now.Unix(),
 		},

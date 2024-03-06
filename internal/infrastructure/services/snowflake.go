@@ -1,4 +1,4 @@
-package infra_services
+package infraServices
 
 import (
 	"sync"
@@ -28,6 +28,11 @@ type Snowflake struct {
 // Uint64 function is used to convert snowflake id to uint64
 func (s *Snowflake) Uint64() uint64 {
 	return (s.timestamp-SfEpoch)<<(SfBits-SfTimestampBits) | uint64(s.worker)<<SfSequenceBits | uint64(s.sequence)
+}
+
+// Timestamp function is used to get timestamp from snowflake id
+func (s *Snowflake) Timestamp() time.Time {
+	return time.Unix(int64(s.timestamp), 0)
 }
 
 // SfService struct is used to define snowflake service
@@ -89,4 +94,9 @@ func (s *SfService) Extract(sf uint64) *Snowflake {
 		worker:    worker,
 		timestamp: timestamp,
 	}
+}
+
+// New function is used to create a new snowflake id and return it as uint64
+func (s *SfService) New() uint64 {
+	return s.Create().Uint64()
 }

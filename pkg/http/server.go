@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	presentation "duonglt.net/internal/presentation/auth"
 	"github.com/spf13/viper"
 )
 
@@ -18,8 +19,11 @@ type Router struct {
 	Mux *http.ServeMux
 }
 
-func NewRouter() *Router {
+func NewRouter(
+	authHttp presentation.AuthHttp,
+) *Router {
 	mux := http.NewServeMux()
+	authHttp.RegisterHandlers(mux)
 	return &Router{Mux: mux}
 }
 
