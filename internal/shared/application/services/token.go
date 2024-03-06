@@ -1,4 +1,4 @@
-package infraServices
+package sharedServices
 
 import (
 	"fmt"

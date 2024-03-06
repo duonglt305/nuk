@@ -1,7 +1,8 @@
-package infrastructure
+package sharedInfrastructure
 
 import (
 	"fmt"
+
 	"github.com/redis/go-redis/v9"
 )
 

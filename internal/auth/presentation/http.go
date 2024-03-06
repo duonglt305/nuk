@@ -1,23 +1,23 @@
-package presentation
+package authPresentation
 
 import (
 	"encoding/json"
 	"net/http"
 
-	authServices "duonglt.net/internal/application/auth/services"
+	authServices "duonglt.net/internal/auth/application/services"
 )
 
-type AuthHttp struct {
+type Http struct {
 	tokenCreateHandler tokenCreateHandler
 }
 
-func NewAuthHttp(authService authServices.AuthService) AuthHttp {
-	return AuthHttp{
+func NewHttp(authService authServices.AuthService) Http {
+	return Http{
 		tokenCreateHandler: newTokenCreateHandler(authService),
 	}
 }
 
-func (h AuthHttp) RegisterHandlers(mux *http.ServeMux) {
+func (h Http) RegisterHandlers(mux *http.ServeMux) {
 	mux.Handle("GET /token", h.tokenCreateHandler)
 }
 

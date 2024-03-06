@@ -1,7 +1,7 @@
 package authRepositories
 
 import (
-	authEntities "duonglt.net/internal/domain/auth/entities"
+	authEntities "duonglt.net/internal/auth/domain/entities"
 )
 
 type UserRepository interface {

@@ -1,4 +1,4 @@
-package http
+package sharedPresentation
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	presentation "duonglt.net/internal/presentation/auth"
+	authPresentation "duonglt.net/internal/auth/presentation"
 	"github.com/spf13/viper"
 )
 
@@ -20,10 +20,12 @@ type Router struct {
 }
 
 func NewRouter(
-	authHttp presentation.AuthHttp,
+	auth authPresentation.Http,
 ) *Router {
 	mux := http.NewServeMux()
-	authHttp.RegisterHandlers(mux)
+	// Register http handlers
+	auth.RegisterHandlers(mux)
+
 	return &Router{Mux: mux}
 }
 

@@ -3,23 +3,27 @@ package authRepositories
 import (
 	"context"
 	"fmt"
-	"github.com/redis/go-redis/v9"
 	"time"
 
-	authEntities "duonglt.net/internal/domain/auth/entities"
-	authRepositories "duonglt.net/internal/domain/auth/repositories"
-	infraServices "duonglt.net/internal/infrastructure/services"
+	"github.com/redis/go-redis/v9"
+
+	authEntities "duonglt.net/internal/auth/domain/entities"
+	authRepositories "duonglt.net/internal/auth/domain/repositories"
+	sharedServices "duonglt.net/internal/shared/application/services"
 )
 
 // TokenRepository struct is used to define token repository
 type TokenRepository struct {
 	rdb       *redis.Client
-	sfService *infraServices.SfService
+	sfService *sharedServices.SfService
 }
 
 // NewTokenRepository function is used to create a new token repository
-func NewTokenRepository(rdb *redis.Client, sfService *infraServices.SfService) authRepositories.TokenRepository {
-	return TokenRepository{rdb: rdb, sfService: sfService}
+func NewTokenRepository(
+	rdb *redis.Client,
+	sfService *sharedServices.SfService,
+) authRepositories.ITokenRepository {
+	return TokenRepository{rdb, sfService}
 }
 
 // Create function is used to create a new token
