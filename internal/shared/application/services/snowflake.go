@@ -1,4 +1,4 @@
-package sharedServices
+package services
 
 import (
 	"sync"

@@ -1,4 +1,4 @@
-package sharedInfrastructure
+package infrastructure
 
 import (
 	"fmt"

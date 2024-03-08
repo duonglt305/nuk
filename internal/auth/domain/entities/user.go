@@ -1,4 +1,4 @@
-package authEntities
+package entities
 
 import "golang.org/x/crypto/bcrypt"
 

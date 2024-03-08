@@ -1,4 +1,4 @@
-package authRepositories
+package repositories
 
 import "time"
 

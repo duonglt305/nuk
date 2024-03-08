@@ -1,11 +1,11 @@
 package auth
 
 import (
-	authServices "duonglt.net/internal/auth/application/services"
-	authEntities "duonglt.net/internal/auth/domain/entities"
-	authRepositories "duonglt.net/internal/auth/domain/repositories"
-	authInfrastructureRepositories "duonglt.net/internal/auth/infrastructure/repositories"
-	authPresentation "duonglt.net/internal/auth/presentation"
+	"duonglt.net/internal/auth/application/services"
+	"duonglt.net/internal/auth/domain/entities"
+	"duonglt.net/internal/auth/domain/repositories"
+	infrasRepositories "duonglt.net/internal/auth/infrastructure/repositories"
+	"duonglt.net/internal/auth/presentation"
 	sharedServices "duonglt.net/internal/shared/application/services"
 	"github.com/google/wire"
 	"github.com/spf13/viper"
@@ -15,22 +15,22 @@ import (
 var WireSet = wire.NewSet(
 	ResolveTokenService,
 	ResolveAuthService,
-	authPresentation.NewHttp,
-	authInfrastructureRepositories.NewTokenRepository,
+	presentation.NewHttp,
+	infrasRepositories.NewTokenRepository,
 )
 
 // ResolveTokenService function is used to resolve token service
-func ResolveTokenService() *sharedServices.TokenService[authEntities.Token] {
-	return sharedServices.NewTokenService[authEntities.Token]([]byte(viper.GetString("JWT_SECRET")))
+func ResolveTokenService() sharedServices.TokenService[entities.Token] {
+	return sharedServices.NewTokenService[entities.Token]([]byte(viper.GetString("JWT_SECRET")))
 }
 
 // ResolveAuthService function is used to resolve auth service
 func ResolveAuthService(
 	sfService *sharedServices.SfService,
-	tokenService *sharedServices.TokenService[authEntities.Token],
-	tokenRepository authRepositories.ITokenRepository,
-) authServices.AuthService {
-	return authServices.NewAuthService(
+	tokenService sharedServices.TokenService[entities.Token],
+	tokenRepository repositories.ITokenRepository,
+) services.AuthService {
+	return services.NewAuthService(
 		sfService,
 		tokenService,
 		tokenRepository,

@@ -1,4 +1,4 @@
-package authEntities
+package entities
 
 import "time"
 

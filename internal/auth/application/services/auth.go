@@ -1,19 +1,19 @@
-package authServices
+package services
 
 import (
+	"duonglt.net/internal/auth/application/dtos"
 	"fmt"
 	"time"
 
 	authEntities "duonglt.net/internal/auth/domain/entities"
 	authRepositories "duonglt.net/internal/auth/domain/repositories"
-	authValueObjects "duonglt.net/internal/auth/domain/vos"
 	sharedServices "duonglt.net/internal/shared/application/services"
 )
 
 // AuthService struct is used to define auth service
 type AuthService struct {
 	sfService            *sharedServices.SfService
-	tokenService         *sharedServices.TokenService[authEntities.Token]
+	tokenService         sharedServices.TokenService[authEntities.Token]
 	tokenRepository      authRepositories.ITokenRepository
 	accessTokenLifetime  time.Duration
 	refreshTokenLifetime time.Duration
@@ -22,7 +22,7 @@ type AuthService struct {
 // NewAuthService function is used to create a new auth service
 func NewAuthService(
 	sfService *sharedServices.SfService,
-	tokenService *sharedServices.TokenService[authEntities.Token],
+	tokenService sharedServices.TokenService[authEntities.Token],
 	tokenRepository authRepositories.ITokenRepository,
 	accessTokenLifetime time.Duration,
 	refreshTokenLifetime time.Duration,
@@ -37,7 +37,7 @@ func NewAuthService(
 }
 
 // CreateToken function is used to create token
-func (s AuthService) CreateToken(uid uint64) (*authValueObjects.Token, error) {
+func (s AuthService) CreateToken(uid uint64) (*dtos.AuthToken, error) {
 	createdAt := time.Now().UTC()
 	var accessToken, refreshToken string
 	var err error
@@ -48,9 +48,9 @@ func (s AuthService) CreateToken(uid uint64) (*authValueObjects.Token, error) {
 	if refreshToken, err = s.createAccessToken(uid, accessTokenID, createdAt); err != nil {
 		return nil, err
 	}
-	return &authValueObjects.Token{
+	return &dtos.AuthToken{
 		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		RefreshToken: &refreshToken,
 		ExpiresAt:    uint64(createdAt.Add(s.accessTokenLifetime * time.Second).Unix()),
 	}, nil
 }
@@ -81,7 +81,7 @@ func (s AuthService) createRefreshToken(uid, accessTokenID uint64, createdAt tim
 }
 
 // RefreshToken function is used to refresh token
-func (s AuthService) RefreshToken(refreshToken string) (*authValueObjects.Token, error) {
+func (s AuthService) RefreshToken(refreshToken string) (*dtos.AuthToken, error) {
 	now := time.Now().UTC()
 	claims, err := s.tokenService.ExtractClaims(refreshToken)
 	if err != nil {

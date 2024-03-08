@@ -1,4 +1,4 @@
-package authPresentation
+package presentation
 
 import (
 	"encoding/json"

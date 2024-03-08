@@ -1,4 +1,4 @@
-package authRepositories
+package repositories
 
 import (
 	"context"
@@ -26,7 +26,7 @@ func NewTokenRepository(
 	return TokenRepository{rdb}
 }
 
-// Create function is used to create a new token
+// AddToBlacklist function is used to add token to blacklist
 func (rep TokenRepository) AddToBlacklist(uid uint64, expiresIn time.Duration) error {
 	key := fmt.Sprintf("%s:%d", blacklistKey, uid)
 	rep.rdb.Set(context.Background(), key, true, expiresIn)
