@@ -9,7 +9,7 @@ import (
 
 // TokenClaims is a struct for token claims
 type TokenClaims[T any] struct {
-	ID T `json:"id"`
+	Data T `json:"id"`
 	jwt.MapClaims
 }
 
@@ -35,10 +35,10 @@ func NewTokenService[T any](
 }
 
 // Create creates a new token
-func (s *TokenService[T]) Create(id T, expiresAt time.Time) (string, error) {
+func (s *TokenService[T]) Create(data T, expiresAt time.Time) (string, error) {
 	now := time.Now().UTC()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, TokenClaims[T]{
-		ID: id,
+		Data: data,
 		MapClaims: jwt.MapClaims{
 			"exp": expiresAt.Unix(),
 			"iat": now.Unix(),
@@ -48,13 +48,13 @@ func (s *TokenService[T]) Create(id T, expiresAt time.Time) (string, error) {
 	return token.SignedString(s.secretKey)
 }
 
-// GetID gets the id from the token
-func (s *TokenService[T]) GetID(token string) (*T, error) {
+// GetData gets the id from the token
+func (s *TokenService[T]) GetData(token string) (*T, error) {
 	claims, err := s.ExtractClaims(token)
 	if err != nil {
 		return nil, err
 	}
-	return &claims.ID, nil
+	return &claims.Data, nil
 }
 
 // ExtractClaims extracts the claims from the token

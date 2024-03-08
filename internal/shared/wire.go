@@ -12,7 +12,6 @@ import (
 // WireSet variable is used to define wire set
 var WireSet = wire.NewSet(
 	ResolveRedisClient,
-	ResolveTokenService,
 	ResolveSnowflakeService,
 	sharedPresentation.NewRouter,
 )
@@ -20,11 +19,6 @@ var WireSet = wire.NewSet(
 // ResolveSnowflakeService function is used to resolve snowflake service
 func ResolveSnowflakeService() *sharedServices.SfService {
 	return sharedServices.NewSfService(uint16(viper.GetInt("SF_WORKER")))
-}
-
-// ResolveTokenService function is used to resolve token service
-func ResolveTokenService() *sharedServices.TokenService[uint64] {
-	return sharedServices.NewTokenService[uint64]([]byte(viper.GetString("JWT_SECRET")))
 }
 
 // ResolveRedisClient function is used to resolve redis client

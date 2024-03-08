@@ -1,8 +1,7 @@
 package authRepositories
 
-import authEntities "duonglt.net/internal/auth/domain/entities"
+import "time"
 
 type ITokenRepository interface {
-	Create(uid uint64) (*authEntities.Token, error)
-	Get(uid uint64) (*authEntities.Token, error)
+	AddToBlacklist(uid uint64, expiresIn time.Duration) error
 }
