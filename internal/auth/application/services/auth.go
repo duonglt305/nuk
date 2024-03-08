@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"time"
 
-	authEntities "duonglt.net/internal/auth/domain/entities"
-	authRepositories "duonglt.net/internal/auth/domain/repositories"
+	"duonglt.net/internal/auth/domain/entities"
+	"duonglt.net/internal/auth/domain/repositories"
 	sharedServices "duonglt.net/internal/shared/application/services"
 )
 
 // AuthService struct is used to define auth service
 type AuthService struct {
 	sfService            *sharedServices.SfService
-	tokenService         sharedServices.TokenService[authEntities.Token]
-	tokenRepository      authRepositories.ITokenRepository
+	tokenService         sharedServices.TokenService[entities.Token]
+	tokenRepository      repositories.ITokenRepository
 	accessTokenLifetime  time.Duration
 	refreshTokenLifetime time.Duration
 }
@@ -22,8 +22,8 @@ type AuthService struct {
 // NewAuthService function is used to create a new auth service
 func NewAuthService(
 	sfService *sharedServices.SfService,
-	tokenService sharedServices.TokenService[authEntities.Token],
-	tokenRepository authRepositories.ITokenRepository,
+	tokenService sharedServices.TokenService[entities.Token],
+	tokenRepository repositories.ITokenRepository,
 	accessTokenLifetime time.Duration,
 	refreshTokenLifetime time.Duration,
 ) AuthService {
@@ -39,42 +39,42 @@ func NewAuthService(
 // CreateToken function is used to create token
 func (s AuthService) CreateToken(uid uint64) (*dtos.AuthToken, error) {
 	createdAt := time.Now().UTC()
-	var accessToken, refreshToken string
-	var err error
-	accessTokenID := s.sfService.New()
-	if accessToken, err = s.createAccessToken(uid, accessTokenID, createdAt); err != nil {
+	rfid := s.sfService.NewSFID()
+
+	accessToken, err := s.createToken(uid, nil, createdAt, s.refreshTokenLifetime)
+	if err != nil {
 		return nil, err
 	}
-	if refreshToken, err = s.createAccessToken(uid, accessTokenID, createdAt); err != nil {
+
+	refreshToken, err := s.createToken(uid, &rfid, createdAt, s.accessTokenLifetime)
+	if err != nil {
 		return nil, err
 	}
+
 	return &dtos.AuthToken{
 		AccessToken:  accessToken,
 		RefreshToken: &refreshToken,
-		ExpiresAt:    uint64(createdAt.Add(s.accessTokenLifetime * time.Second).Unix()),
+		ExpiresAt:    createdAt.Add(s.accessTokenLifetime * time.Second).Unix(),
 	}, nil
 }
 
-// createAccessToken function is used to create a new access token
-func (s AuthService) createAccessToken(uid, accessTokenID uint64, createdAt time.Time) (string, error) {
-	token := authEntities.Token{
-		ID:        accessTokenID,
-		Uid:       uid,
-		CreatedAt: createdAt,
-		ExpiresAt: createdAt.Add(s.accessTokenLifetime * time.Second),
+// createToken function is used to create a new access token
+func (s AuthService) createToken(
+	uid uint64,
+	refreshTokenId *uint64,
+	createdAt time.Time,
+	lifetime time.Duration,
+) (string, error) {
+	id := s.sfService.NewSFID()
+	if refreshTokenId != nil {
+		id = *refreshTokenId
 	}
-
-	return s.tokenService.Create(token, token.ExpiresAt)
-}
-
-// createRefreshToken function is used to create a new refresh token
-func (s AuthService) createRefreshToken(uid, accessTokenID uint64, createdAt time.Time) (string, error) {
-	token := authEntities.Token{
-		ID:            s.sfService.New(),
-		Uid:           uid,
-		AccessTokenID: &accessTokenID,
-		CreatedAt:     createdAt,
-		ExpiresAt:     createdAt.Add(s.refreshTokenLifetime * time.Second),
+	token := entities.Token{
+		Id:             id,
+		Uid:            uid,
+		RefreshTokenId: refreshTokenId,
+		CreatedAt:      createdAt,
+		ExpiresAt:      createdAt.Add(lifetime * time.Second),
 	}
 
 	return s.tokenService.Create(token, token.ExpiresAt)
@@ -89,9 +89,8 @@ func (s AuthService) RefreshToken(refreshToken string) (*dtos.AuthToken, error) 
 	}
 	accessTokenExpiresAt := claims.Data.CreatedAt.Add(s.accessTokenLifetime * time.Second)
 	if accessTokenExpiresAt.After(now) {
-		if err := s.tokenRepository.AddToBlacklist(*claims.Data.AccessTokenID, accessTokenExpiresAt.Sub(now)); err != nil {
-			fmt.Printf("failed to add to blacklist: %+v\n", err)
-		}
+		fmt.Println("Access token is still valid")
+		return nil, nil
 	}
 	// TODO: Generate new access token
 

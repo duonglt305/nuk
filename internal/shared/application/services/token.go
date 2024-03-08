@@ -48,15 +48,6 @@ func (s TokenService[T]) Create(data T, expiresAt time.Time) (string, error) {
 	return token.SignedString(s.secretKey)
 }
 
-// GetData gets the id from the token
-func (s TokenService[T]) GetData(token string) (*T, error) {
-	claims, err := s.ExtractClaims(token)
-	if err != nil {
-		return nil, err
-	}
-	return &claims.Data, nil
-}
-
 // ExtractClaims extracts the claims from the token
 func (s TokenService[T]) ExtractClaims(token string) (*TokenClaims[T], error) {
 	claims := TokenClaims[T]{}
