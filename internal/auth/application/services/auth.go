@@ -1,28 +1,34 @@
-package authServices
+package services
 
 import (
+	"duonglt.net/internal/auth/application/dtos"
+	"fmt"
 	"time"
 
-	authRepositories "duonglt.net/internal/auth/domain/repositories"
+	"duonglt.net/internal/auth/domain/entities"
+	"duonglt.net/internal/auth/domain/repositories"
 	sharedServices "duonglt.net/internal/shared/application/services"
 )
 
 // AuthService struct is used to define auth service
 type AuthService struct {
+	sfService            *sharedServices.SfService
+	tokenService         sharedServices.TokenService[entities.Token]
+	tokenRepository      repositories.ITokenRepository
 	accessTokenLifetime  time.Duration
 	refreshTokenLifetime time.Duration
-	tokenService         *sharedServices.TokenService[uint64]
-	tokenRepository      authRepositories.ITokenRepository
 }
 
 // NewAuthService function is used to create a new auth service
 func NewAuthService(
+	sfService *sharedServices.SfService,
+	tokenService sharedServices.TokenService[entities.Token],
+	tokenRepository repositories.ITokenRepository,
 	accessTokenLifetime time.Duration,
 	refreshTokenLifetime time.Duration,
-	tokenService *sharedServices.TokenService[uint64],
-	tokenRepository authRepositories.ITokenRepository,
 ) AuthService {
 	return AuthService{
+		sfService:            sfService,
 		tokenService:         tokenService,
 		tokenRepository:      tokenRepository,
 		accessTokenLifetime:  accessTokenLifetime,
@@ -30,35 +36,68 @@ func NewAuthService(
 	}
 }
 
-// CreateToken function is used to create a new token
-func (s AuthService) CreateToken(uid uint64) (string, error) {
-	token, err := s.tokenRepository.Create(uid)
+// CreateToken function is used to create token
+func (s AuthService) CreateToken(uid uint64) (*dtos.AuthToken, error) {
+	createdAt := time.Now().UTC()
+	rfid := s.sfService.NewSFID()
+
+	accessToken, err := s.createToken(uid, nil, createdAt, s.refreshTokenLifetime)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	expiresAt := token.CreatedAt.Add(s.accessTokenLifetime)
-	return s.tokenService.Create(token.Uid, expiresAt)
+
+	refreshToken, err := s.createToken(uid, &rfid, createdAt, s.accessTokenLifetime)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dtos.AuthToken{
+		AccessToken:  accessToken,
+		RefreshToken: &refreshToken,
+		ExpiresAt:    createdAt.Add(s.accessTokenLifetime * time.Second).Unix(),
+	}, nil
 }
 
-// CreateRefreshToken function is used to create a new refresh token
-func (s AuthService) CreateRefreshToken(uid uint64) (string, error) {
-	token, err := s.tokenRepository.Create(uid)
-	if err != nil {
-		return "", err
+// createToken function is used to create a new access token
+func (s AuthService) createToken(
+	uid uint64,
+	refreshTokenId *uint64,
+	createdAt time.Time,
+	lifetime time.Duration,
+) (string, error) {
+	id := s.sfService.NewSFID()
+	if refreshTokenId != nil {
+		id = *refreshTokenId
 	}
-	expiresAt := token.CreatedAt.Add(s.refreshTokenLifetime)
-	return s.tokenService.Create(token.Uid, expiresAt)
+	token := entities.Token{
+		Id:             id,
+		Uid:            uid,
+		RefreshTokenId: refreshTokenId,
+		CreatedAt:      createdAt,
+		ExpiresAt:      createdAt.Add(lifetime * time.Second),
+	}
+
+	return s.tokenService.Create(token, token.ExpiresAt)
+}
+
+// RefreshToken function is used to refresh token
+func (s AuthService) RefreshToken(refreshToken string) (*dtos.AuthToken, error) {
+	now := time.Now().UTC()
+	claims, err := s.tokenService.ExtractClaims(refreshToken)
+	if err != nil {
+		return nil, err
+	}
+	accessTokenExpiresAt := claims.Data.CreatedAt.Add(s.accessTokenLifetime * time.Second)
+	if accessTokenExpiresAt.After(now) {
+		fmt.Println("Access token is still valid")
+		return nil, nil
+	}
+	// TODO: Generate new access token
+
+	return nil, nil
 }
 
 // VerifyToken function is used to verify token
 func (s AuthService) VerifyToken(token string) (uint64, error) {
-	id, err := s.tokenService.GetID(token)
-	if err != nil {
-		return 0, err
-	}
-	tk, err := s.tokenRepository.Get(*id)
-	if err != nil {
-		return 0, err
-	}
-	return tk.Uid, nil
+	return 0, nil
 }

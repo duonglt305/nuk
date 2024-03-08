@@ -1,9 +1,11 @@
-package authEntities
+package entities
 
 import "time"
 
 type Token struct {
-	ID        uint64
-	Uid       uint64
-	CreatedAt *time.Time
+	Id             uint64
+	Uid            uint64
+	RefreshTokenId *uint64
+	ExpiresAt      time.Time
+	CreatedAt      time.Time
 }

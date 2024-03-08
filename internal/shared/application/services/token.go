@@ -1,4 +1,4 @@
-package sharedServices
+package services
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 
 // TokenClaims is a struct for token claims
 type TokenClaims[T any] struct {
-	ID T `json:"id"`
+	Data T `json:"id"`
 	jwt.MapClaims
 }
 
@@ -28,17 +28,17 @@ type TokenService[T any] struct {
 // NewTokenService creates a new token service
 func NewTokenService[T any](
 	secretKey []byte,
-) *TokenService[T] {
-	return &TokenService[T]{
+) TokenService[T] {
+	return TokenService[T]{
 		secretKey: secretKey,
 	}
 }
 
 // Create creates a new token
-func (s *TokenService[T]) Create(id T, expiresAt time.Time) (string, error) {
+func (s TokenService[T]) Create(data T, expiresAt time.Time) (string, error) {
 	now := time.Now().UTC()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, TokenClaims[T]{
-		ID: id,
+		Data: data,
 		MapClaims: jwt.MapClaims{
 			"exp": expiresAt.Unix(),
 			"iat": now.Unix(),
@@ -48,17 +48,8 @@ func (s *TokenService[T]) Create(id T, expiresAt time.Time) (string, error) {
 	return token.SignedString(s.secretKey)
 }
 
-// GetID gets the id from the token
-func (s *TokenService[T]) GetID(token string) (*T, error) {
-	claims, err := s.ExtractClaims(token)
-	if err != nil {
-		return nil, err
-	}
-	return &claims.ID, nil
-}
-
 // ExtractClaims extracts the claims from the token
-func (s *TokenService[T]) ExtractClaims(token string) (*TokenClaims[T], error) {
+func (s TokenService[T]) ExtractClaims(token string) (*TokenClaims[T], error) {
 	claims := TokenClaims[T]{}
 	t, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (any, error) {
 		return s.secretKey, nil

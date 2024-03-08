@@ -1,4 +1,4 @@
-package sharedPresentation
+package presentation
 
 import (
 	"context"

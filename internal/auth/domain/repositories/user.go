@@ -1,4 +1,4 @@
-package authRepositories
+package repositories
 
 import (
 	authEntities "duonglt.net/internal/auth/domain/entities"
