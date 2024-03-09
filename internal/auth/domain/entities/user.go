@@ -1,12 +1,17 @@
 package entities
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"golang.org/x/crypto/bcrypt"
+	"time"
+)
 
 type User struct {
-	ID       uint64
-	Email    string
-	Password string
-	Bio      string
+	Id        uint64
+	Email     string
+	Password  string
+	Bio       string
+	CreatedAt *time.Time
+	UpdatedAt *time.Time
 }
 
 func (u *User) HashPassword() error {
