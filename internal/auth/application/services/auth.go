@@ -13,7 +13,7 @@ import (
 // AuthService struct is used to define auth service
 type AuthService struct {
 	sfService            *sharedServices.SfService
-	tokenService         sharedServices.TokenService[entities.Token]
+	jwtService           sharedServices.JwtService[entities.Token]
 	tokenRepository      repositories.ITokenRepository
 	accessTokenLifetime  time.Duration
 	refreshTokenLifetime time.Duration
@@ -22,14 +22,14 @@ type AuthService struct {
 // NewAuthService function is used to create a new auth service
 func NewAuthService(
 	sfService *sharedServices.SfService,
-	tokenService sharedServices.TokenService[entities.Token],
+	jwtService sharedServices.JwtService[entities.Token],
 	tokenRepository repositories.ITokenRepository,
 	accessTokenLifetime time.Duration,
 	refreshTokenLifetime time.Duration,
 ) AuthService {
 	return AuthService{
 		sfService:            sfService,
-		tokenService:         tokenService,
+		jwtService:           jwtService,
 		tokenRepository:      tokenRepository,
 		accessTokenLifetime:  accessTokenLifetime,
 		refreshTokenLifetime: refreshTokenLifetime,
@@ -77,13 +77,13 @@ func (s AuthService) createToken(
 		ExpiresAt:      createdAt.Add(lifetime * time.Second),
 	}
 
-	return s.tokenService.Create(token, token.ExpiresAt)
+	return s.jwtService.Create(token, token.ExpiresAt)
 }
 
 // RefreshToken function is used to refresh token
 func (s AuthService) RefreshToken(refreshToken string) (*dtos.AuthToken, error) {
 	now := time.Now().UTC()
-	claims, err := s.tokenService.ExtractClaims(refreshToken)
+	claims, err := s.jwtService.ExtractClaims(refreshToken)
 	if err != nil {
 		return nil, err
 	}

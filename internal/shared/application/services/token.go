@@ -13,29 +13,22 @@ type TokenClaims[T any] struct {
 	jwt.MapClaims
 }
 
-// ITokenService is an interface for token service
-type ITokenService[T any] interface {
-	Create(id T, expiresAt time.Time) (string, error)
-	GetID(token string) (*T, error)
-	ExtractClaims(token string) (*TokenClaims[T], error)
-}
-
-// TokenService is a service for creating and extracting tokens
-type TokenService[T any] struct {
+// JwtService is a service for creating and extracting tokens
+type JwtService[T any] struct {
 	secretKey []byte
 }
 
-// NewTokenService creates a new token service
-func NewTokenService[T any](
+// NewJwtService creates a new token service
+func NewJwtService[T any](
 	secretKey []byte,
-) TokenService[T] {
-	return TokenService[T]{
+) JwtService[T] {
+	return JwtService[T]{
 		secretKey: secretKey,
 	}
 }
 
 // Create creates a new token
-func (s TokenService[T]) Create(data T, expiresAt time.Time) (string, error) {
+func (s JwtService[T]) Create(data T, expiresAt time.Time) (string, error) {
 	now := time.Now().UTC()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, TokenClaims[T]{
 		Data: data,
@@ -49,7 +42,7 @@ func (s TokenService[T]) Create(data T, expiresAt time.Time) (string, error) {
 }
 
 // ExtractClaims extracts the claims from the token
-func (s TokenService[T]) ExtractClaims(token string) (*TokenClaims[T], error) {
+func (s JwtService[T]) ExtractClaims(token string) (*TokenClaims[T], error) {
 	claims := TokenClaims[T]{}
 	t, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (any, error) {
 		return s.secretKey, nil

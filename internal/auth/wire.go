@@ -15,28 +15,29 @@ import (
 
 // WireSet is used to wire the dependencies of auth module
 var WireSet = wire.NewSet(
-	ResolveTokenService,
+	ResolveJwtService,
 	ResolveAuthService,
 	ResolvePgClient,
-	presentation.NewHttp,
 	infrasRepositories.NewTokenRepository,
 	infrasRepositories.NewUserRepository,
+	services.NewUserService,
+	presentation.NewHttp,
 )
 
-// ResolveTokenService function is used to resolve token service
-func ResolveTokenService() sharedServices.TokenService[entities.Token] {
-	return sharedServices.NewTokenService[entities.Token]([]byte(viper.GetString("JWT_SECRET")))
+// ResolveJwtService function is used to resolve token service
+func ResolveJwtService() sharedServices.JwtService[entities.Token] {
+	return sharedServices.NewJwtService[entities.Token]([]byte(viper.GetString("JWT_SECRET")))
 }
 
 // ResolveAuthService function is used to resolve auth service
 func ResolveAuthService(
 	sfService *sharedServices.SfService,
-	tokenService sharedServices.TokenService[entities.Token],
+	jwtService sharedServices.JwtService[entities.Token],
 	tokenRepository repositories.ITokenRepository,
 ) services.AuthService {
 	return services.NewAuthService(
 		sfService,
-		tokenService,
+		jwtService,
 		tokenRepository,
 		viper.GetDuration("JWT_ACCESS_TOKEN_LIFETIME"),
 		viper.GetDuration("JWT_REFRESH_TOKEN_LIFETIME"),
