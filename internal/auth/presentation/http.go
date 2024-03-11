@@ -2,32 +2,36 @@ package presentation
 
 import (
 	"duonglt.net/internal/auth/application/dtos"
+	"duonglt.net/internal/auth/application/services"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"regexp"
-
-	"duonglt.net/internal/auth/application/services"
 )
 
 type Http struct {
-	tokenCreateHandler  tokenCreateHandler
-	tokenRefreshHandler tokenRefreshHandler
-	registrationHandler registrationHandler
+	profileHandler       profileHandler
+	tokenCreateHandler   tokenCreateHandler
+	tokenRefreshHandler  tokenRefreshHandler
+	registrationHandler  registrationHandler
+	updateProfileHandler updateProfileHandler
 }
 
 func NewHttp(
-	userService services.UserService,
-	authService services.AuthService,
+	uService services.UserService,
+	authService services.TokenService,
 ) Http {
 	return Http{
-		tokenCreateHandler:  newTokenCreateHandler(userService, authService),
-		tokenRefreshHandler: newTokenRefreshHandler(authService),
-		registrationHandler: newRegistrationHandler(userService),
+		profileHandler:       newProfileHandler(uService),
+		tokenCreateHandler:   newTokenCreateHandler(uService, authService),
+		tokenRefreshHandler:  newTokenRefreshHandler(authService),
+		registrationHandler:  newRegistrationHandler(uService),
+		updateProfileHandler: newUpdateProfileHandler(uService),
 	}
 }
 
-func (h Http) RegisterHandlers(mux *http.ServeMux) {
+func (h Http) RegisterHandlers(mux *http.ServeMux, authenticated func(http.Handler) http.Handler) {
+	mux.Handle("GET /auth/me", authenticated(h.profileHandler))
+	mux.Handle("PUT /auth/me", authenticated(h.updateProfileHandler))
 	mux.Handle("POST /auth/token", h.tokenCreateHandler)
 	mux.Handle("GET /auth/token/refresh", h.tokenRefreshHandler)
 	mux.Handle("POST /auth/registration", h.registrationHandler)
@@ -35,25 +39,25 @@ func (h Http) RegisterHandlers(mux *http.ServeMux) {
 
 // TokenCreateHandler is used to handle token creation
 type tokenCreateHandler struct {
-	userService services.UserService
-	authService services.AuthService
+	uService    services.UserService
+	authService services.TokenService
 }
 
 func newTokenCreateHandler(
 	userService services.UserService,
-	authService services.AuthService,
+	authService services.TokenService,
 ) tokenCreateHandler {
 	return tokenCreateHandler{userService, authService}
 }
 
 func (h tokenCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	body := dtos.TokenCreateRequest{}
+	body := dtos.TokenCreateInput{}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
-	user, err := h.userService.FindByEmail(body.Email)
+	user, err := h.uService.FindByEmail(body.Email)
 	if err != nil {
 		fmt.Printf("Error: %+v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -77,11 +81,11 @@ func (h tokenCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // TokenRefreshHandler is used to handle token refresh
 type tokenRefreshHandler struct {
-	authService services.AuthService
+	tokenService services.TokenService
 }
 
-func newTokenRefreshHandler(authService services.AuthService) tokenRefreshHandler {
-	return tokenRefreshHandler{authService: authService}
+func newTokenRefreshHandler(authService services.TokenService) tokenRefreshHandler {
+	return tokenRefreshHandler{tokenService: authService}
 }
 
 func (h tokenRefreshHandler) extractToken(r *http.Request) (string, error) {
@@ -90,17 +94,12 @@ func (h tokenRefreshHandler) extractToken(r *http.Request) (string, error) {
 
 func (h tokenRefreshHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	reg, err := regexp.Compile("Bearer (.*)")
+	token, err := h.tokenService.ExtractToken(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	results := reg.FindStringSubmatch(r.Header.Get("Authorization"))
-	if len(results) != 2 {
-		http.Error(w, "Invalid token", http.StatusBadRequest)
-		return
-	}
-	tk, err := h.authService.RefreshToken(results[1])
+	tk, err := h.tokenService.RefreshToken(token)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -113,24 +112,78 @@ func (h tokenRefreshHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 type registrationHandler struct {
-	userService services.UserService
+	uService services.UserService
 }
 
 func newRegistrationHandler(userService services.UserService) registrationHandler {
-	return registrationHandler{userService: userService}
+	return registrationHandler{uService: userService}
 }
 
 func (h registrationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	body := dtos.CreateUserRequest{}
+	body := dtos.UserCreateInput{}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
-	user, err := h.userService.Create(body)
+	user, err := h.uService.Create(body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	fmt.Printf("User: %+v", user)
+}
+
+// profileHandler is used to handle profile
+type profileHandler struct {
+	uService services.UserService
+}
+
+func newProfileHandler(uService services.UserService) profileHandler {
+	return profileHandler{uService}
+}
+
+func (h profileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	uid := r.Context().Value("UID").(uint64)
+	u, err := h.uService.FindByID(uid)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	b, _ := json.Marshal(u)
+	if _, err := w.Write(b); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+}
+
+// updateProfileHandler is used to handle profile update
+type updateProfileHandler struct {
+	uService services.UserService
+}
+
+func newUpdateProfileHandler(uService services.UserService) updateProfileHandler {
+	return updateProfileHandler{uService}
+}
+
+func (h updateProfileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	uid := r.Context().Value("UID").(uint64)
+	body := dtos.UserUpdateInput{Id: uid}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+	u, err := h.uService.Update(body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	b, _ := json.Marshal(u)
+	if _, err := w.Write(b); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 }

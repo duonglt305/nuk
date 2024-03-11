@@ -1,9 +1,11 @@
 package repositories
 
-import "duonglt.net/internal/auth/domain/entities"
+import (
+	"duonglt.net/internal/auth/domain/entities"
+	shared "duonglt.net/internal/shared/domain"
+)
 
-type IUserRepository interface {
-	FindById(id uint64) (*entities.User, error)
-	FindByEmail(email string) (*entities.User, error)
-	Save(user *entities.User) error
+type UserRepository[M any, E entities.User] interface {
+	shared.IRepository[E, M]
+	FindByEmail(email string) (E, error)
 }
