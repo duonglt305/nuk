@@ -1,12 +1,13 @@
 package services
 
 import (
-	"duonglt.net/internal/auth/application/dtos"
 	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
 	"time"
+
+	"duonglt.net/internal/auth/application/dtos"
 
 	"duonglt.net/internal/auth/domain/entities"
 	"duonglt.net/internal/auth/domain/repositories"

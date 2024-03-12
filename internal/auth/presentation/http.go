@@ -1,11 +1,12 @@
 package presentation
 
 import (
-	"duonglt.net/internal/auth/application/dtos"
-	"duonglt.net/internal/auth/application/services"
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"duonglt.net/internal/auth/application/dtos"
+	"duonglt.net/internal/auth/application/services"
 )
 
 type Http struct {
@@ -131,7 +132,11 @@ func (h registrationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Printf("User: %+v", user)
+	b, _ := json.Marshal(user)
+	if _, err := w.Write(b); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 }
 
 // profileHandler is used to handle profile
