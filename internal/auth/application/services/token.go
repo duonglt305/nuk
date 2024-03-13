@@ -110,8 +110,8 @@ func (s TokenService) VerifyToken(token string) (uint64, error) {
 	return claims.Data.Uid, nil
 }
 
-// ExtractToken function is used to extract token
-func (s TokenService) ExtractToken(r *http.Request) (string, error) {
+// ExtractRawToken function is used to extract token
+func (s TokenService) ExtractRawToken(r *http.Request) (string, error) {
 	reg, err := regexp.Compile("Bearer (.*)")
 	if err != nil {
 		return "", err

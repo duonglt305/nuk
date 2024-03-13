@@ -95,7 +95,7 @@ func (h tokenRefreshHandler) extractToken(r *http.Request) (string, error) {
 
 func (h tokenRefreshHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	token, err := h.tokenService.ExtractToken(r)
+	token, err := h.tokenService.ExtractRawToken(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
