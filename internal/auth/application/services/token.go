@@ -102,12 +102,12 @@ func (s TokenService) RefreshToken(refreshToken string) (*dtos.AuthToken, error)
 }
 
 // VerifyToken function is used to verify token
-func (s TokenService) VerifyToken(token string) (uint64, error) {
+func (s TokenService) VerifyToken(token string) (entities.Token, error) {
 	claims, err := s.jwtService.ExtractClaims(token)
 	if err != nil {
-		return 0, err
+		return *new(entities.Token), err
 	}
-	return claims.Data.Uid, nil
+	return claims.Data, nil
 }
 
 // ExtractRawToken function is used to extract token

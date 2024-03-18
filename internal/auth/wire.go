@@ -8,7 +8,6 @@ import (
 	infrasRepositories "duonglt.net/internal/auth/infrastructure/repositories"
 	"duonglt.net/internal/auth/presentation"
 	sharedServices "duonglt.net/internal/shared/application/services"
-	sharedInfrastructure "duonglt.net/internal/shared/infrastructure/db"
 	"github.com/google/wire"
 	"github.com/jmoiron/sqlx"
 	"github.com/spf13/viper"
@@ -18,12 +17,11 @@ import (
 var WireSet = wire.NewSet(
 	ResolveJwtService,
 	ResolveAuthService,
-	ResolvePgClient,
 	ResolveUserRepository,
 	infrasRepositories.NewTokenRepository,
 	services.NewUserService,
 	presentation.NewAuthMiddleware,
-	presentation.NewHttp,
+	presentation.NewHttpHandler,
 )
 
 func ResolveUserRepository(db *sqlx.DB) repositories.UserRepository[models.UserModel, entities.User] {
@@ -48,9 +46,4 @@ func ResolveAuthService(
 		viper.GetDuration("JWT_ACCESS_TOKEN_LIFETIME"),
 		viper.GetDuration("JWT_REFRESH_TOKEN_LIFETIME"),
 	)
-}
-
-// ResolvePgClient function is used to resolve pg client
-func ResolvePgClient() *sqlx.DB {
-	return sharedInfrastructure.NewPgClient(viper.GetString("DATABASE_URL"))
 }

@@ -9,7 +9,7 @@ import (
 	"duonglt.net/internal/auth/application/services"
 )
 
-type Http struct {
+type HttpHandler struct {
 	profileHandler       profileHandler
 	tokenCreateHandler   tokenCreateHandler
 	tokenRefreshHandler  tokenRefreshHandler
@@ -17,11 +17,11 @@ type Http struct {
 	updateProfileHandler updateProfileHandler
 }
 
-func NewHttp(
+func NewHttpHandler(
 	uService services.UserService,
 	authService services.TokenService,
-) Http {
-	return Http{
+) HttpHandler {
+	return HttpHandler{
 		profileHandler:       newProfileHandler(uService),
 		tokenCreateHandler:   newTokenCreateHandler(uService, authService),
 		tokenRefreshHandler:  newTokenRefreshHandler(authService),
@@ -30,7 +30,7 @@ func NewHttp(
 	}
 }
 
-func (h Http) RegisterHandlers(mux *http.ServeMux, authenticated func(http.Handler) http.Handler) {
+func (h HttpHandler) RegisterHandlers(mux *http.ServeMux, authenticated func(http.Handler) http.Handler) {
 	mux.Handle("GET /auth/me", authenticated(h.profileHandler))
 	mux.Handle("PUT /auth/me", authenticated(h.updateProfileHandler))
 	mux.Handle("POST /auth/token", h.tokenCreateHandler)

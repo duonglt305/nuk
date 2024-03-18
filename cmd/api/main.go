@@ -14,13 +14,13 @@ func main() {
 		log.Printf("failed to read config: %+v\n", err)
 		os.Exit(1)
 	}
-	r, err := internal.InitializeRouter()
+	r, err := internal.Initialize()
 	if err != nil {
-		log.Printf("failed to initialize router: %+v\n", err)
+		log.Printf("%+v\n", err)
 		os.Exit(1)
 	}
 	if err := r.ServeHTTP(); err != nil {
-		log.Printf("failed to serve http: %+v\n", err)
+		log.Printf("failed to start application: %+v\n", err)
 		os.Exit(1)
 	}
 }

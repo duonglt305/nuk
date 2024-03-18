@@ -21,12 +21,12 @@ func (m AuthMiddleware) Handle(next http.Handler) http.Handler {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
-		uid, err := m.tokenService.VerifyToken(token)
+		tk, err := m.tokenService.VerifyToken(token)
 		if err != nil {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
-		r = r.WithContext(context.WithValue(r.Context(), "UID", uid))
+		r = r.WithContext(context.WithValue(r.Context(), "UID", tk.Uid))
 		next.ServeHTTP(w, r)
 	})
 }

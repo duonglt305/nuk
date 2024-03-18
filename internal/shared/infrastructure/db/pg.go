@@ -7,17 +7,16 @@ import (
 )
 
 // NewPgClient creates a new pgsql client
-func NewPgClient(dbUrl string) *sqlx.DB {
+func NewPgClient(dbUrl string) (*sqlx.DB, error) {
 	db, err := sqlx.Connect("postgres", dbUrl)
 	if err != nil {
-		fmt.Printf("failed to connect to database: %+v\n", err)
-		return nil
+		return nil, fmt.Errorf("failed to connect to database: %+v\n", err)
 	}
 
 	if err := db.Ping(); err != nil {
-		fmt.Printf("failed to ping database: %+v\n", err)
-		return nil
+
+		return nil, fmt.Errorf("failed to ping database: %+v\n", err)
 	}
 
-	return db
+	return db, nil
 }

@@ -3,7 +3,6 @@ package shared
 import (
 	"duonglt.net/internal/shared/application/services"
 	"duonglt.net/internal/shared/infrastructure/cache"
-	"duonglt.net/internal/shared/presentation"
 	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
@@ -13,7 +12,6 @@ import (
 var WireSet = wire.NewSet(
 	ResolveRedisClient,
 	ResolveSnowflakeService,
-	presentation.NewRouter,
 )
 
 // ResolveSnowflakeService function is used to resolve snowflake service

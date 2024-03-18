@@ -1,7 +1,8 @@
-package presentation
+package internal
 
 import (
 	"context"
+	auth "duonglt.net/internal/auth/presentation"
 	"errors"
 	"log"
 	"net"
@@ -10,29 +11,26 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
-	authPresentation "duonglt.net/internal/auth/presentation"
-	"github.com/spf13/viper"
 )
 
 type Router struct {
-	Mux *http.ServeMux
+	Port string
+	Mux  *http.ServeMux
 }
 
 func NewRouter(
-	authenticate authPresentation.AuthMiddleware,
-	auth authPresentation.Http,
+	port string,
+	auth auth.HttpHandler,
+	authenticated auth.AuthMiddleware,
 ) *Router {
-	mux := http.NewServeMux()
-	// Register http handlers
-	auth.RegisterHandlers(mux, authenticate.Handle)
-
-	return &Router{Mux: mux}
+	r := &Router{Mux: http.NewServeMux(), Port: port}
+	auth.RegisterHandlers(r.Mux, authenticated.Handle)
+	return r
 }
 
 func (r *Router) ServeHTTP() error {
 	sv := &http.Server{
-		Addr:    net.JoinHostPort("", viper.GetString("PORT")),
+		Addr:    net.JoinHostPort("", r.Port),
 		Handler: r.Mux,
 	}
 	go func() {
