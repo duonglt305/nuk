@@ -1,9 +1,10 @@
 package repositories
 
 import (
+	"fmt"
+
 	"duonglt.net/internal/auth/domain/entities"
 	shared "duonglt.net/internal/shared/infrastructure"
-	"fmt"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -15,7 +16,7 @@ type UserRepository[M shared.IModel[E], E entities.User] struct {
 // NewUserRepository is a constructor to create a new UserRepository
 func NewUserRepository[M shared.IModel[E], E entities.User](db *sqlx.DB) UserRepository[M, E] {
 	return UserRepository[M, E]{
-		Repository: shared.NewRepository[M, E](db),
+		Repository: shared.NewRepository[M](db),
 		db:         db,
 	}
 }

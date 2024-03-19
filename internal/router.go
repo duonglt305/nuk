@@ -2,7 +2,6 @@ package internal
 
 import (
 	"context"
-	auth "duonglt.net/internal/auth/presentation"
 	"errors"
 	"log"
 	"net"
@@ -11,6 +10,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	auth "duonglt.net/internal/auth/presentation"
 )
 
 type Router struct {
@@ -33,14 +34,16 @@ func (r *Router) ServeHTTP() error {
 		Addr:    net.JoinHostPort("", r.Port),
 		Handler: r.Mux,
 	}
-	go func() {
-		if err := sv.ListenAndServe(); errors.Is(err, http.ErrServerClosed) {
-			log.Fatal("Server closed unexpectedly")
-		}
-	}()
+	go listenAndServe(sv)
 
 	log.Printf("🚀 Server starting on %v\n", sv.Addr)
 	return r.graceful(sv)
+}
+
+func listenAndServe(sv *http.Server) {
+	if err := sv.ListenAndServe(); errors.Is(err, http.ErrServerClosed) {
+		log.Fatal("🛑 Server closed unexpectedly")
+	}
 }
 
 func (r *Router) graceful(sv *http.Server) error {

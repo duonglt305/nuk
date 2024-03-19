@@ -25,7 +25,7 @@ var WireSet = wire.NewSet(
 )
 
 func ResolveUserRepository(db *sqlx.DB) repositories.UserRepository[models.UserModel, entities.User] {
-	return infrasRepositories.NewUserRepository[models.UserModel, entities.User](db)
+	return infrasRepositories.NewUserRepository[models.UserModel](db)
 }
 
 // ResolveJwtService function is used to resolve token service
