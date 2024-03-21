@@ -34,7 +34,7 @@ func (h HttpHandler) RegisterHandlers(mux *http.ServeMux, authenticated func(htt
 	mux.Handle("GET /auth/me", authenticated(h.profileHandler))
 	mux.Handle("PUT /auth/me", authenticated(h.updateProfileHandler))
 	mux.Handle("POST /auth/token", h.tokenCreateHandler)
-	mux.Handle("GET /auth/token/refresh", h.tokenRefreshHandler)
+	mux.Handle("POST /auth/token/refresh", h.tokenRefreshHandler)
 	mux.Handle("POST /auth/registration", h.registrationHandler)
 }
 
@@ -73,9 +73,12 @@ func (h tokenCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	b, _ := json.Marshal(tk)
-	if _, err := w.Write(b); err != nil {
+	if err := h.uService.MarkAsLogged(user); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(tk); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }

@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"regexp"
 	"time"
@@ -19,7 +18,7 @@ type TokenService struct {
 	sfService            *sharedServices.SfService
 	jwtService           sharedServices.JwtService[entities.Token]
 	tokenRepository      repositories.ITokenRepository
-	accessTokenLifetime  time.Duration
+	accessLifetime       time.Duration
 	refreshTokenLifetime time.Duration
 }
 
@@ -28,60 +27,60 @@ func NewTokenService(
 	sfService *sharedServices.SfService,
 	jwtService sharedServices.JwtService[entities.Token],
 	tokenRepository repositories.ITokenRepository,
-	accessTokenLifetime time.Duration,
-	refreshTokenLifetime time.Duration,
+	accessLifetime time.Duration,
+	refreshLifetime time.Duration,
 ) TokenService {
 	return TokenService{
 		sfService:            sfService,
 		jwtService:           jwtService,
 		tokenRepository:      tokenRepository,
-		accessTokenLifetime:  accessTokenLifetime,
-		refreshTokenLifetime: refreshTokenLifetime,
+		accessLifetime:       accessLifetime,
+		refreshTokenLifetime: refreshLifetime,
 	}
 }
 
 // CreateToken function is used to create token
 func (s TokenService) CreateToken(uid uint64) (*dtos.AuthToken, error) {
 	createdAt := time.Now().UTC()
-	rfid := s.sfService.NewSFID()
+	tkid := new(uint64)
 
-	accessToken, err := s.createToken(uid, nil, createdAt, s.refreshTokenLifetime)
+	access, err := s.createToken(uid, tkid, createdAt, s.refreshTokenLifetime)
 	if err != nil {
 		return nil, err
 	}
-
-	refreshToken, err := s.createToken(uid, &rfid, createdAt, s.accessTokenLifetime)
+	refresh, err := s.createToken(uid, tkid, createdAt, s.accessLifetime)
 	if err != nil {
 		return nil, err
 	}
 
 	return &dtos.AuthToken{
-		AccessToken:  accessToken,
-		RefreshToken: &refreshToken,
-		ExpiresAt:    createdAt.Add(s.accessTokenLifetime * time.Second).Unix(),
+		AccessToken:  access,
+		RefreshToken: &refresh,
+		ExpiresAt:    createdAt.Add(s.accessLifetime * time.Second).Unix(),
 	}, nil
 }
 
 // createToken function is used to create a new access token
 func (s TokenService) createToken(
 	uid uint64,
-	refreshTokenId *uint64,
+	tkid *uint64,
 	createdAt time.Time,
 	lifetime time.Duration,
 ) (string, error) {
 	id := s.sfService.NewSFID()
-	if refreshTokenId != nil {
-		id = *refreshTokenId
+	if *tkid == 0 {
+		*tkid = id
 	}
-	token := entities.Token{
-		Id:             id,
-		Uid:            uid,
-		RefreshTokenId: refreshTokenId,
-		CreatedAt:      createdAt,
-		ExpiresAt:      createdAt.Add(lifetime * time.Second),
+	tk := entities.Token{
+		ID:        id,
+		Uid:       uid,
+		CreatedAt: createdAt,
+		ExpiresAt: createdAt.Add(lifetime * time.Second),
 	}
-
-	return s.jwtService.Create(token, token.ExpiresAt)
+	if id != *tkid {
+		tk.Tkid = tkid
+	}
+	return s.jwtService.Create(tk, tk.ExpiresAt)
 }
 
 // RefreshToken function is used to refresh token
@@ -91,23 +90,28 @@ func (s TokenService) RefreshToken(refreshToken string) (*dtos.AuthToken, error)
 	if err != nil {
 		return nil, err
 	}
-	accessTokenExpiresAt := claims.Data.CreatedAt.Add(s.accessTokenLifetime * time.Second)
-	if accessTokenExpiresAt.After(now) {
-		fmt.Println("Access token is still valid")
-		return nil, nil
+	if s.tokenRepository.IsBlacklisted(*claims.Data.Tkid) {
+		return nil, errors.New("refresh token is invalid")
 	}
-	// TODO: Generate new access token
-
-	return nil, nil
+	accessExpiresAt := claims.Data.CreatedAt.Add(s.accessLifetime * time.Second)
+	if accessExpiresAt.After(now) {
+		s.tokenRepository.AddToBlacklist(*claims.Data.Tkid, claims.Data.ExpiresAt.Sub(now))
+	}
+	return s.CreateToken(claims.Data.Uid)
 }
 
 // VerifyToken function is used to verify token
-func (s TokenService) VerifyToken(token string) (entities.Token, error) {
+func (s TokenService) VerifyToken(token string) (*entities.Token, error) {
+	tk := new(entities.Token)
 	claims, err := s.jwtService.ExtractClaims(token)
 	if err != nil {
-		return *new(entities.Token), err
+		return tk, err
 	}
-	return claims.Data, nil
+	*tk = claims.Data
+	if tk.Tkid != nil || s.tokenRepository.IsBlacklisted(tk.ID) {
+		return tk, errors.New("token is invalid")
+	}
+	return tk, nil
 }
 
 // ExtractRawToken function is used to extract token
@@ -119,7 +123,7 @@ func (s TokenService) ExtractRawToken(r *http.Request) (string, error) {
 	results := reg.FindStringSubmatch(r.Header.Get("Authorization"))
 
 	if len(results) < 2 {
-		return "", errors.New("invalid token")
+		return "", errors.New("token is invalid")
 	}
 	return results[1], nil
 }

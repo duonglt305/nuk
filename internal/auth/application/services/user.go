@@ -1,12 +1,13 @@
 package services
 
 import (
+	"time"
+
 	"duonglt.net/internal/auth/application/dtos"
 	"duonglt.net/internal/auth/domain/entities"
 	"duonglt.net/internal/auth/domain/repositories"
 	"duonglt.net/internal/auth/infrastructure/models"
 	sharedServices "duonglt.net/internal/shared/application/services"
-	"time"
 )
 
 type UserService struct {
@@ -52,6 +53,13 @@ func (s UserService) FindByEmail(email string) (entities.User, error) {
 // FindByID finds a user by ID
 func (s UserService) FindByID(id uint64) (entities.User, error) {
 	return s.uRepository.FindById(id)
+}
+
+// MarkAsLogged marks a user as logged
+func (s UserService) MarkAsLogged(user entities.User) error {
+	now := time.Now().UTC()
+	user.LoggedAt = &now
+	return s.uRepository.Update(&user)
 }
 
 // Update updates a user

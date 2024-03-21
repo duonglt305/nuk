@@ -2,8 +2,9 @@ package presentation
 
 import (
 	"context"
-	"duonglt.net/internal/auth/application/services"
 	"net/http"
+
+	"duonglt.net/internal/auth/application/services"
 )
 
 type AuthMiddleware struct {
