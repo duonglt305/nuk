@@ -1,11 +1,12 @@
 package infrastructure
 
 import (
-	"duonglt.net/pkg/utils"
 	"fmt"
-	"github.com/jmoiron/sqlx"
 	"reflect"
 	"strings"
+
+	"duonglt.net/pkg/utils"
+	"github.com/jmoiron/sqlx"
 )
 
 // Repository is a generic repository
@@ -49,8 +50,8 @@ func (rep Repository[M, E]) Save(entity *E) error {
 	sql := fmt.Sprintf(
 		"INSERT INTO %s (%s) VALUES (%s)",
 		model.Table(),
-		strings.Join(fields, ","),
-		strings.Join(namedFields, ","),
+		strings.Join(fields, ", "),
+		strings.Join(namedFields, ", "),
 	)
 	if _, err := rep.db.NamedExec(sql, model); err != nil {
 		return err
@@ -71,7 +72,7 @@ func (rep Repository[M, E]) Update(entity *E) error {
 	sql := fmt.Sprintf(
 		"UPDATE %s SET %s WHERE id = :id",
 		model.Table(),
-		strings.Join(namedFields, ","),
+		strings.Join(namedFields, ", "),
 	)
 	fmt.Println(sql)
 	if _, err := rep.db.NamedExec(sql, model); err != nil {
