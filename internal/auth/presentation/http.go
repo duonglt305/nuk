@@ -1,8 +1,8 @@
 package presentation
 
 import (
-	"encoding/json"
-	"fmt"
+	"duonglt.net/pkg/res"
+	"duonglt.net/pkg/validator"
 	"net/http"
 
 	"duonglt.net/internal/auth/application/dtos"
@@ -52,35 +52,30 @@ func newTokenCreateHandler(
 }
 
 func (h tokenCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	body := dtos.TokenCreateInput{}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+	body := dtos.TokenCreate{}
+	if err := validator.NewValidator(r, &body); err != nil {
+		res.Error(w, err)
 		return
 	}
 	user, err := h.uService.FindByEmail(body.Email)
 	if err != nil {
-		fmt.Printf("Error: %+v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		res.Error(w, err)
 		return
 	}
 	if ok := user.ComparePassword(body.Password); !ok {
-		http.Error(w, fmt.Errorf("invalid password").Error(), http.StatusBadRequest)
+		res.Error(w, err)
 		return
 	}
 	tk, err := h.authService.CreateToken(user.Id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		res.Error(w, err)
 		return
 	}
 	if err := h.uService.MarkAsLogged(user); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		res.Error(w, err)
 		return
 	}
-	if err := json.NewEncoder(w).Encode(tk); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	res.Ok(w, tk)
 }
 
 // TokenRefreshHandler is used to handle token refresh
@@ -97,22 +92,17 @@ func (h tokenRefreshHandler) extractToken(r *http.Request) (string, error) {
 }
 
 func (h tokenRefreshHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	token, err := h.tokenService.ExtractRawToken(r)
+	body := dtos.TokenRefresh{}
+	if err := validator.NewValidator(r, &body); err != nil {
+		res.Error(w, err)
+		return
+	}
+	tk, err := h.tokenService.RefreshToken(body.RefreshToken)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		res.Error(w, err)
 		return
 	}
-	tk, err := h.tokenService.RefreshToken(token)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	b, _ := json.Marshal(tk)
-	if _, err := w.Write(b); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+	res.Ok(w, tk)
 }
 
 type registrationHandler struct {
@@ -124,22 +114,17 @@ func newRegistrationHandler(userService services.UserService) registrationHandle
 }
 
 func (h registrationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	body := dtos.UserCreateInput{}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+	if err := validator.NewValidator(r, &body); err != nil {
+		res.Error(w, err)
 		return
 	}
 	user, err := h.uService.Create(body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		res.Error(w, err)
 		return
 	}
-	b, _ := json.Marshal(user)
-	if _, err := w.Write(b); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+	res.Ok(w, user)
 }
 
 // profileHandler is used to handle profile
@@ -152,18 +137,13 @@ func newProfileHandler(uService services.UserService) profileHandler {
 }
 
 func (h profileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	uid := r.Context().Value("UID").(uint64)
 	u, err := h.uService.FindByID(uid)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		res.Error(w, err)
 		return
 	}
-	b, _ := json.Marshal(u)
-	if _, err := w.Write(b); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+	res.Ok(w, u)
 }
 
 // updateProfileHandler is used to handle profile update
@@ -176,22 +156,16 @@ func newUpdateProfileHandler(uService services.UserService) updateProfileHandler
 }
 
 func (h updateProfileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	uid := r.Context().Value("UID").(uint64)
 	body := dtos.UserUpdateInput{Id: uid}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+	if err := validator.NewValidator(r, &body); err != nil {
+		res.Error(w, err)
 		return
 	}
 	u, err := h.uService.Update(body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		res.Error(w, err)
 		return
 	}
-
-	b, _ := json.Marshal(u)
-	if _, err := w.Write(b); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+	res.Ok(w, u)
 }

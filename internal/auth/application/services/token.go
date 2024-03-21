@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
 	"time"
@@ -40,15 +41,15 @@ func NewTokenService(
 }
 
 // CreateToken function is used to create token
-func (s TokenService) CreateToken(uid uint64) (*dtos.AuthToken, error) {
+func (serv TokenService) CreateToken(uid uint64) (*dtos.AuthToken, error) {
 	createdAt := time.Now().UTC()
-	tkid := new(uint64)
+	tid := new(uint64)
 
-	access, err := s.createToken(uid, tkid, createdAt, s.refreshTokenLifetime)
+	access, err := serv.createToken(uid, tid, createdAt, serv.refreshTokenLifetime)
 	if err != nil {
 		return nil, err
 	}
-	refresh, err := s.createToken(uid, tkid, createdAt, s.accessLifetime)
+	refresh, err := serv.createToken(uid, tid, createdAt, serv.accessLifetime)
 	if err != nil {
 		return nil, err
 	}
@@ -56,18 +57,18 @@ func (s TokenService) CreateToken(uid uint64) (*dtos.AuthToken, error) {
 	return &dtos.AuthToken{
 		AccessToken:  access,
 		RefreshToken: &refresh,
-		ExpiresAt:    createdAt.Add(s.accessLifetime * time.Second).Unix(),
+		ExpiresAt:    createdAt.Add(serv.accessLifetime * time.Second).Unix(),
 	}, nil
 }
 
 // createToken function is used to create a new access token
-func (s TokenService) createToken(
+func (serv TokenService) createToken(
 	uid uint64,
 	tkid *uint64,
 	createdAt time.Time,
 	lifetime time.Duration,
 ) (string, error) {
-	id := s.sfService.New()
+	id := serv.sfService.New()
 	if *tkid == 0 {
 		*tkid = id
 	}
@@ -78,44 +79,46 @@ func (s TokenService) createToken(
 		ExpiresAt: createdAt.Add(lifetime * time.Second),
 	}
 	if id != *tkid {
-		tk.Tkid = tkid
+		tk.Tid = tkid
 	}
-	return s.jwtService.Create(tk, tk.ExpiresAt)
+	return serv.jwtService.Create(tk, tk.ExpiresAt)
 }
 
 // RefreshToken function is used to refresh token
-func (s TokenService) RefreshToken(refreshToken string) (*dtos.AuthToken, error) {
+func (serv TokenService) RefreshToken(refreshToken string) (*dtos.AuthToken, error) {
 	now := time.Now().UTC()
-	claims, err := s.jwtService.ExtractClaims(refreshToken)
+	claims, err := serv.jwtService.ExtractClaims(refreshToken)
 	if err != nil {
 		return nil, err
 	}
-	if s.tokenRepository.IsBlacklisted(*claims.Data.Tkid) {
+	if serv.tokenRepository.IsBlacklisted(*claims.Data.Tid) {
 		return nil, errors.New("refresh token is invalid")
 	}
-	accessExpiresAt := claims.Data.CreatedAt.Add(s.accessLifetime * time.Second)
+	accessExpiresAt := claims.Data.CreatedAt.Add(serv.accessLifetime * time.Second)
 	if accessExpiresAt.After(now) {
-		s.tokenRepository.AddToBlacklist(*claims.Data.Tkid, claims.Data.ExpiresAt.Sub(now))
+		if err := serv.tokenRepository.AddToBlacklist(*claims.Data.Tid, claims.Data.ExpiresAt.Sub(now)); err != nil {
+			fmt.Printf("failed to add token to blacklist: %+v\n", err)
+		}
 	}
-	return s.CreateToken(claims.Data.Uid)
+	return serv.CreateToken(claims.Data.Uid)
 }
 
 // VerifyToken function is used to verify token
-func (s TokenService) VerifyToken(token string) (*entities.Token, error) {
+func (serv TokenService) VerifyToken(token string) (*entities.Token, error) {
 	tk := new(entities.Token)
-	claims, err := s.jwtService.ExtractClaims(token)
+	claims, err := serv.jwtService.ExtractClaims(token)
 	if err != nil {
 		return tk, err
 	}
 	*tk = claims.Data
-	if tk.Tkid != nil || s.tokenRepository.IsBlacklisted(tk.ID) {
+	if tk.Tid != nil || serv.tokenRepository.IsBlacklisted(tk.ID) {
 		return tk, errors.New("token is invalid")
 	}
 	return tk, nil
 }
 
 // ExtractRawToken function is used to extract token
-func (s TokenService) ExtractRawToken(r *http.Request) (string, error) {
+func (serv TokenService) ExtractRawToken(r *http.Request) (string, error) {
 	reg, err := regexp.Compile("Bearer (.*)")
 	if err != nil {
 		return "", err

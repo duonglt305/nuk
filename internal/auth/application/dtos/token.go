@@ -6,11 +6,11 @@ type AuthToken struct {
 	ExpiresAt    int64   `json:"expires_at"`
 }
 
-type TokenCreateInput struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+type TokenCreate struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=6"`
 }
 
-type TokenRefreshInput struct {
-	RefreshToken string `json:"refresh_token"`
+type TokenRefresh struct {
+	RefreshToken string `json:"refresh_token" validate:"required"`
 }
