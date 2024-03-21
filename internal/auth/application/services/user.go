@@ -29,7 +29,7 @@ func NewUserService(
 func (s UserService) Create(data dtos.UserCreateInput) (*entities.User, error) {
 	now := time.Now().UTC()
 	user := &entities.User{
-		Id:        s.sfService.NewSFID(),
+		Id:        s.sfService.New(),
 		Email:     data.Email,
 		Password:  data.Password,
 		Bio:       data.Bio,

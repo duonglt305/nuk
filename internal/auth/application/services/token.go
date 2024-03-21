@@ -67,7 +67,7 @@ func (s TokenService) createToken(
 	createdAt time.Time,
 	lifetime time.Duration,
 ) (string, error) {
-	id := s.sfService.NewSFID()
+	id := s.sfService.New()
 	if *tkid == 0 {
 		*tkid = id
 	}

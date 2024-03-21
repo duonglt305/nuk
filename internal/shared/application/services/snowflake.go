@@ -96,7 +96,7 @@ func (s *SfService) Extract(sf uint64) *Snowflake {
 	}
 }
 
-// NewSFID function is used to create a new snowflake id and return it as uint64
-func (s *SfService) NewSFID() uint64 {
+// New function is used to create a new snowflake id and return it as uint64
+func (s *SfService) New() uint64 {
 	return s.Create().Uint64()
 }
