@@ -1,4 +1,4 @@
-package infrastructure
+package db
 
 import (
 	"fmt"
@@ -8,6 +8,19 @@ import (
 	"duonglt.net/pkg/utils"
 	"github.com/jmoiron/sqlx"
 )
+
+type IRepository[E any, M any] interface {
+	FindById(id uint64) (E, error)
+	Save(entity *E) error
+	Update(entity *E) error
+	Delete(id uint64) error
+}
+
+type IModel[E any] interface {
+	Table() string
+	ToEntity() E
+	FromEntity(entity E) any
+}
 
 // Repository is a generic repository
 type Repository[M IModel[E], E any] struct {

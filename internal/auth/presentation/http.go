@@ -1,9 +1,9 @@
 package presentation
 
 import (
-	"duonglt.net/pkg/res"
-	"duonglt.net/pkg/validator"
 	"net/http"
+
+	vHttp "duonglt.net/pkg/http"
 
 	"duonglt.net/internal/auth/application/dtos"
 	"duonglt.net/internal/auth/application/services"
@@ -53,29 +53,29 @@ func newTokenCreateHandler(
 
 func (h tokenCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	body := dtos.TokenCreate{}
-	if err := validator.NewValidator(r, &body); err != nil {
-		res.Error(w, err)
+	if err := vHttp.NewValidator(r, &body); err != nil {
+		vHttp.Error(w, err)
 		return
 	}
 	user, err := h.uService.FindByEmail(body.Email)
 	if err != nil {
-		res.Error(w, err)
+		vHttp.Error(w, err)
 		return
 	}
 	if ok := user.ComparePassword(body.Password); !ok {
-		res.Error(w, err)
+		vHttp.Error(w, err)
 		return
 	}
 	tk, err := h.authService.CreateToken(user.Id)
 	if err != nil {
-		res.Error(w, err)
+		vHttp.Error(w, err)
 		return
 	}
 	if err := h.uService.MarkAsLogged(user); err != nil {
-		res.Error(w, err)
+		vHttp.Error(w, err)
 		return
 	}
-	res.Ok(w, tk)
+	vHttp.Ok(w, tk)
 }
 
 // TokenRefreshHandler is used to handle token refresh
@@ -93,16 +93,16 @@ func (h tokenRefreshHandler) extractToken(r *http.Request) (string, error) {
 
 func (h tokenRefreshHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	body := dtos.TokenRefresh{}
-	if err := validator.NewValidator(r, &body); err != nil {
-		res.Error(w, err)
+	if err := vHttp.NewValidator(r, &body); err != nil {
+		vHttp.Error(w, err)
 		return
 	}
 	tk, err := h.tokenService.RefreshToken(body.RefreshToken)
 	if err != nil {
-		res.Error(w, err)
+		vHttp.Error(w, err)
 		return
 	}
-	res.Ok(w, tk)
+	vHttp.Ok(w, tk)
 }
 
 type registrationHandler struct {
@@ -115,16 +115,16 @@ func newRegistrationHandler(userService services.UserService) registrationHandle
 
 func (h registrationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	body := dtos.UserCreateInput{}
-	if err := validator.NewValidator(r, &body); err != nil {
-		res.Error(w, err)
+	if err := vHttp.NewValidator(r, &body); err != nil {
+		vHttp.Error(w, err)
 		return
 	}
 	user, err := h.uService.Create(body)
 	if err != nil {
-		res.Error(w, err)
+		vHttp.Error(w, err)
 		return
 	}
-	res.Ok(w, user)
+	vHttp.Ok(w, user)
 }
 
 // profileHandler is used to handle profile
@@ -140,10 +140,10 @@ func (h profileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value("UID").(uint64)
 	u, err := h.uService.FindByID(uid)
 	if err != nil {
-		res.Error(w, err)
+		vHttp.Error(w, err)
 		return
 	}
-	res.Ok(w, u)
+	vHttp.Ok(w, u)
 }
 
 // updateProfileHandler is used to handle profile update
@@ -158,14 +158,14 @@ func newUpdateProfileHandler(uService services.UserService) updateProfileHandler
 func (h updateProfileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value("UID").(uint64)
 	body := dtos.UserUpdateInput{Id: uid}
-	if err := validator.NewValidator(r, &body); err != nil {
-		res.Error(w, err)
+	if err := vHttp.NewValidator(r, &body); err != nil {
+		vHttp.Error(w, err)
 		return
 	}
 	u, err := h.uService.Update(body)
 	if err != nil {
-		res.Error(w, err)
+		vHttp.Error(w, err)
 		return
 	}
-	res.Ok(w, u)
+	vHttp.Ok(w, u)
 }

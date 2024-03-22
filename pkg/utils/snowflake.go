@@ -1,4 +1,4 @@
-package services
+package utils
 
 import (
 	"sync"
@@ -35,8 +35,8 @@ func (s *Snowflake) Timestamp() time.Time {
 	return time.Unix(int64(s.timestamp), 0)
 }
 
-// SfService struct is used to define snowflake service
-type SfService struct {
+// SnowflakeManager struct is used to define snowflake service
+type SnowflakeManager struct {
 	lock     sync.Mutex
 	worker   uint16
 	sequence uint16
@@ -44,8 +44,8 @@ type SfService struct {
 }
 
 // NewSfService function is used to create a new snowflake service
-func NewSfService(worker uint16) *SfService {
-	return &SfService{
+func NewSfService(worker uint16) *SnowflakeManager {
+	return &SnowflakeManager{
 		worker:   worker,
 		sequence: 0,
 		lastTs:   0,
@@ -53,7 +53,7 @@ func NewSfService(worker uint16) *SfService {
 }
 
 // waitNextMillis function is used to wait until next millisecond
-func (s *SfService) waitNextMillis() uint64 {
+func (s *SnowflakeManager) waitNextMillis() uint64 {
 	timestamp := uint64(time.Now().Unix())
 	for timestamp <= s.lastTs {
 		timestamp = uint64(time.Now().Unix())
@@ -62,7 +62,7 @@ func (s *SfService) waitNextMillis() uint64 {
 }
 
 // Create function is used to create a new snowflake id
-func (s *SfService) Create() *Snowflake {
+func (s *SnowflakeManager) Create() *Snowflake {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	timestamp := uint64(time.Now().Unix())
@@ -85,7 +85,7 @@ func (s *SfService) Create() *Snowflake {
 }
 
 // Extract function is used to extract snowflake id
-func (s *SfService) Extract(sf uint64) *Snowflake {
+func (s *SnowflakeManager) Extract(sf uint64) *Snowflake {
 	worker := uint16((sf >> uint64(SfSequenceBits)) & ((1 << uint64(SfWorkerBits)) - 1))
 	timestamp := (sf >> (SfBits - SfTimestampBits)) + SfEpoch
 	sequence := uint16(sf & ((1 << SfSequenceBits) - 1))
@@ -97,6 +97,6 @@ func (s *SfService) Extract(sf uint64) *Snowflake {
 }
 
 // New function is used to create a new snowflake id and return it as uint64
-func (s *SfService) New() uint64 {
+func (s *SnowflakeManager) New() uint64 {
 	return s.Create().Uint64()
 }

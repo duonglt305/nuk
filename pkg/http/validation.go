@@ -1,13 +1,14 @@
-package validator
+package http
 
 import (
 	"encoding/json"
+	"net/http"
+	"sync"
+
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	enTrans "github.com/go-playground/validator/v10/translations/en"
-	"net/http"
-	"sync"
 )
 
 type ValidationError struct {
@@ -28,8 +29,8 @@ type Validator struct {
 }
 
 var (
-	val  *Validator
-	once sync.Once
+	validate *Validator
+	once     sync.Once
 )
 
 // NewValidator creates a new instance of the Validator struct
@@ -42,9 +43,9 @@ func NewValidator(r *http.Request, params any) error {
 		if ok {
 			_ = enTrans.RegisterDefaultTranslations(v, trans)
 		}
-		val = &Validator{v, &trans}
+		validate = &Validator{v, &trans}
 	})
-	return val.exec(r, params)
+	return validate.exec(r, params)
 }
 
 // exec is a method of the Validator struct that validates the given request and parameters

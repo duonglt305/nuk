@@ -2,10 +2,15 @@ package presentation
 
 import (
 	"context"
-	"duonglt.net/pkg/res"
 	"net/http"
 
+	vHttp "duonglt.net/pkg/http"
+
 	"duonglt.net/internal/auth/application/services"
+)
+
+const (
+	ContextUidKey = "UID"
 )
 
 type AuthMiddleware struct {
@@ -20,15 +25,15 @@ func (m AuthMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, err := m.tokenService.ExtractRawToken(r)
 		if err != nil {
-			res.Error(w, err)
+			vHttp.Unauthorized(w, err)
 			return
 		}
 		tk, err := m.tokenService.VerifyToken(token)
 		if err != nil {
-			res.Error(w, err)
+			vHttp.Unauthorized(w, err)
 			return
 		}
-		r = r.WithContext(context.WithValue(r.Context(), "UID", tk.Uid))
+		r = r.WithContext(context.WithValue(r.Context(), ContextUidKey, tk.Uid))
 		next.ServeHTTP(w, r)
 	})
 }

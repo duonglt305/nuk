@@ -11,32 +11,33 @@ import (
 
 	"duonglt.net/internal/auth/domain/entities"
 	"duonglt.net/internal/auth/domain/repositories"
-	sharedServices "duonglt.net/internal/shared/application/services"
+	"duonglt.net/pkg/jwt"
+	"duonglt.net/pkg/utils"
 )
 
 // TokenService struct is used to define auth service
 type TokenService struct {
-	sfService            *sharedServices.SfService
-	jwtService           sharedServices.JwtService[entities.Token]
-	tokenRepository      repositories.ITokenRepository
-	accessLifetime       time.Duration
-	refreshTokenLifetime time.Duration
+	sfManager       *utils.SnowflakeManager
+	jwtService      jwt.TokenManager[entities.Token]
+	tokenRepository repositories.ITokenRepository
+	accessLifetime  time.Duration
+	refreshLifetime time.Duration
 }
 
 // NewTokenService function is used to create a new auth service
 func NewTokenService(
-	sfService *sharedServices.SfService,
-	jwtService sharedServices.JwtService[entities.Token],
+	sfManager *utils.SnowflakeManager,
+	jwtService jwt.TokenManager[entities.Token],
 	tokenRepository repositories.ITokenRepository,
 	accessLifetime time.Duration,
 	refreshLifetime time.Duration,
 ) TokenService {
 	return TokenService{
-		sfService:            sfService,
-		jwtService:           jwtService,
-		tokenRepository:      tokenRepository,
-		accessLifetime:       accessLifetime,
-		refreshTokenLifetime: refreshLifetime,
+		sfManager:       sfManager,
+		jwtService:      jwtService,
+		tokenRepository: tokenRepository,
+		accessLifetime:  accessLifetime,
+		refreshLifetime: refreshLifetime,
 	}
 }
 
@@ -45,11 +46,11 @@ func (serv TokenService) CreateToken(uid uint64) (*dtos.AuthToken, error) {
 	createdAt := time.Now().UTC()
 	tid := new(uint64)
 
-	access, err := serv.createToken(uid, tid, createdAt, serv.refreshTokenLifetime)
+	access, err := serv.createToken(uid, tid, createdAt, serv.accessLifetime)
 	if err != nil {
 		return nil, err
 	}
-	refresh, err := serv.createToken(uid, tid, createdAt, serv.accessLifetime)
+	refresh, err := serv.createToken(uid, tid, createdAt, serv.refreshLifetime)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +69,7 @@ func (serv TokenService) createToken(
 	createdAt time.Time,
 	lifetime time.Duration,
 ) (string, error) {
-	id := serv.sfService.New()
+	id := serv.sfManager.New()
 	if *tkid == 0 {
 		*tkid = id
 	}

@@ -7,20 +7,20 @@ import (
 	"duonglt.net/internal/auth/domain/entities"
 	"duonglt.net/internal/auth/domain/repositories"
 	"duonglt.net/internal/auth/infrastructure/models"
-	sharedServices "duonglt.net/internal/shared/application/services"
+	"duonglt.net/pkg/utils"
 )
 
 type UserService struct {
-	sfService   *sharedServices.SfService
+	sfManager   *utils.SnowflakeManager
 	uRepository repositories.UserRepository[models.UserModel, entities.User]
 }
 
 func NewUserService(
-	sfService *sharedServices.SfService,
+	sfManager *utils.SnowflakeManager,
 	uRepository repositories.UserRepository[models.UserModel, entities.User],
 ) UserService {
 	return UserService{
-		sfService:   sfService,
+		sfManager:   sfManager,
 		uRepository: uRepository,
 	}
 }
@@ -29,7 +29,7 @@ func NewUserService(
 func (s UserService) Create(data dtos.UserCreateInput) (*entities.User, error) {
 	now := time.Now().UTC()
 	user := &entities.User{
-		Id:        s.sfService.New(),
+		Id:        s.sfManager.New(),
 		Email:     data.Email,
 		Password:  data.Password,
 		Bio:       data.Bio,

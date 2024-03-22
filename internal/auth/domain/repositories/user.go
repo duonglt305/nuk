@@ -2,10 +2,10 @@ package repositories
 
 import (
 	"duonglt.net/internal/auth/domain/entities"
-	shared "duonglt.net/internal/shared/domain"
+	"duonglt.net/pkg/db"
 )
 
 type UserRepository[M any, E entities.User] interface {
-	shared.IRepository[E, M]
+	db.IRepository[E, M]
 	FindByEmail(email string) (E, error)
 }
