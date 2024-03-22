@@ -1,12 +1,12 @@
 package dtos
 
-type UserCreateInput struct {
-	Email    string  `json:"email"`
-	Password string  `json:"password"`
-	Bio      *string `json:"bio,omitempty"`
+type UserCreate struct {
+	Email    string  `json:"email" validate:"required,email"`
+	Password string  `json:"password" validate:"required,min=6"`
+	Bio      *string `json:"bio" validate:"omitempty,max=255"`
 }
 
-type UserUpdateInput struct {
+type UserUpdate struct {
 	Id  uint64  `json:"id"`
-	Bio *string `json:"bio,omitempty"`
+	Bio *string `json:"bio" validate:"omitempty,max=255"`
 }

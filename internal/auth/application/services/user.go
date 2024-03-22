@@ -26,7 +26,7 @@ func NewUserService(
 }
 
 // Create creates a new user
-func (s UserService) Create(data dtos.UserCreateInput) (*entities.User, error) {
+func (s UserService) Create(data dtos.UserCreate) (*entities.User, error) {
 	now := time.Now().UTC()
 	user := &entities.User{
 		Id:        s.sfManager.New(),
@@ -63,7 +63,7 @@ func (s UserService) MarkAsLogged(user entities.User) error {
 }
 
 // Update updates a user
-func (s UserService) Update(data dtos.UserUpdateInput) (entities.User, error) {
+func (s UserService) Update(data dtos.UserUpdate) (entities.User, error) {
 	now := time.Now().UTC()
 	user, err := s.uRepository.FindById(data.Id)
 	if err != nil {

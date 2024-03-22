@@ -114,7 +114,7 @@ func newRegistrationHandler(userService services.UserService) registrationHandle
 }
 
 func (h registrationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	body := dtos.UserCreateInput{}
+	body := dtos.UserCreate{}
 	if err := vHttp.NewValidator(r, &body); err != nil {
 		vHttp.Error(w, err)
 		return
@@ -157,7 +157,7 @@ func newUpdateProfileHandler(uService services.UserService) updateProfileHandler
 
 func (h updateProfileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value("UID").(uint64)
-	body := dtos.UserUpdateInput{Id: uid}
+	body := dtos.UserUpdate{Id: uid}
 	if err := vHttp.NewValidator(r, &body); err != nil {
 		vHttp.Error(w, err)
 		return

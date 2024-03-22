@@ -43,11 +43,11 @@ func initial() *v4.Migrate {
 	var err error
 	driver := viper.GetString("DATABASE_DRIVER")
 	dbUrl := viper.GetString("DATABASE_URL")
-	path := fmt.Sprintf("file://db/migrations/%s", driver)
 	if driver == "" {
 		log.Println("DATABASE_DRIVER is not set")
 		os.Exit(1)
 	}
+	path := fmt.Sprintf("file://db/migrations/%s", driver)
 	dbIns, err := db.New(driver, dbUrl)
 	if err != nil {
 		log.Printf("failed to connect to database: %+v\n", err)
