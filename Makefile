@@ -1,4 +1,4 @@
-.PHONY: init dev
+.PHONY: init dev migration
 
 init:
 	go mod tidy
@@ -7,3 +7,7 @@ init:
 	if [ ! -f .env ]; then cp .env.example .env; fi
 dev:
 	go run github.com/cosmtrek/air@latest -c .air.toml
+migration:
+	go run github.com/golang-migrate/migrate/v4/cmd/migrate@latest create -ext sql -dir db/migrations $(name)
+migrate:
+	go run cmd/migrate/main.go $(t)

@@ -1,10 +1,11 @@
 package repositories
 
 import (
-	authEntities "duonglt.net/internal/auth/domain/entities"
+	"duonglt.net/internal/auth/domain/entities"
+	"duonglt.net/pkg/db"
 )
 
-type IUserRepository interface {
-	FindByEmail(email string) (*authEntities.User, error)
-	Create(user *authEntities.User) (uint64, error)
+type UserRepository[M any, E entities.User] interface {
+	db.IRepository[E, M]
+	FindByEmail(email string) (E, error)
 }

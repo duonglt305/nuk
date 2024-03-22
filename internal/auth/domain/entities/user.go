@@ -1,14 +1,22 @@
 package entities
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"time"
+
+	"golang.org/x/crypto/bcrypt"
+)
 
 type User struct {
-	ID       uint64
-	Email    string
-	Password string
-	Bio      string
+	Id        uint64     `json:"id"`
+	Email     string     `json:"email"`
+	Password  string     `json:"-"`
+	Bio       *string    `json:"bio"`
+	LoggedAt  *time.Time `json:"logged_at"`
+	CreatedAt *time.Time `json:"created_at"`
+	UpdatedAt *time.Time `json:"updated_at"`
 }
 
+// HashPassword hashes the user's password using bcrypt
 func (u *User) HashPassword() error {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -18,6 +26,7 @@ func (u *User) HashPassword() error {
 	return nil
 }
 
-func (u *User) ComparePassword(password string) bool {
+// ComparePassword compares the user's password with the provided password
+func (u User) ComparePassword(password string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password)) == nil
 }

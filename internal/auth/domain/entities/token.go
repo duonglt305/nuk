@@ -3,9 +3,9 @@ package entities
 import "time"
 
 type Token struct {
-	Id             uint64
-	Uid            uint64
-	RefreshTokenId *uint64
-	ExpiresAt      time.Time
-	CreatedAt      time.Time
+	ID        uint64    `json:"id"`
+	Uid       uint64    `json:"uid"`
+	Tid       *uint64   `json:"tid"`
+	ExpiresAt time.Time `json:"expires_at"`
+	CreatedAt time.Time `json:"created_at"`
 }

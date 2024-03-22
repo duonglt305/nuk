@@ -1,4 +1,4 @@
-package presentation
+package internal
 
 import (
 	"context"
@@ -11,37 +11,39 @@ import (
 	"syscall"
 	"time"
 
-	authPresentation "duonglt.net/internal/auth/presentation"
-	"github.com/spf13/viper"
+	auth "duonglt.net/internal/auth/presentation"
 )
 
 type Router struct {
-	Mux *http.ServeMux
+	Port string
+	Mux  *http.ServeMux
 }
 
 func NewRouter(
-	auth authPresentation.Http,
+	port string,
+	auth auth.HttpHandler,
+	authenticated auth.AuthMiddleware,
 ) *Router {
-	mux := http.NewServeMux()
-	// Register http handlers
-	auth.RegisterHandlers(mux)
-
-	return &Router{Mux: mux}
+	r := &Router{Mux: http.NewServeMux(), Port: port}
+	auth.RegisterHandlers(r.Mux, authenticated.Handle)
+	return r
 }
 
 func (r *Router) ServeHTTP() error {
 	sv := &http.Server{
-		Addr:    net.JoinHostPort("", viper.GetString("PORT")),
+		Addr:    net.JoinHostPort("", r.Port),
 		Handler: r.Mux,
 	}
-	go func() {
-		if err := sv.ListenAndServe(); errors.Is(err, http.ErrServerClosed) {
-			log.Fatal("Server closed unexpectedly")
-		}
-	}()
+	go listenAndServe(sv)
 
 	log.Printf("🚀 Server starting on %v\n", sv.Addr)
 	return r.graceful(sv)
+}
+
+func listenAndServe(sv *http.Server) {
+	if err := sv.ListenAndServe(); errors.Is(err, http.ErrServerClosed) {
+		log.Fatal("🛑 Server closed unexpectedly")
+	}
 }
 
 func (r *Router) graceful(sv *http.Server) error {

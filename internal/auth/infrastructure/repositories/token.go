@@ -32,3 +32,10 @@ func (rep TokenRepository) AddToBlacklist(uid uint64, expiresIn time.Duration) e
 	rep.rdb.Set(context.Background(), key, true, expiresIn)
 	return nil
 }
+
+// IsBlacklisted function is used to check if token is blacklisted
+func (rep TokenRepository) IsBlacklisted(uid uint64) bool {
+	key := fmt.Sprintf("%s:%d", blacklistKey, uid)
+	_, err := rep.rdb.Get(context.Background(), key).Result()
+	return err == nil
+}
