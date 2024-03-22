@@ -3,7 +3,7 @@ package http
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -22,7 +22,7 @@ func BadRequest(w http.ResponseWriter, err error) {
 		"code":    unknown,
 		"error":   err.Error(),
 	}
-	fmt.Printf("error: %+v\n", err)
+	log.Printf("error: %+v\n", err)
 	if err := json.NewEncoder(w).Encode(body); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
