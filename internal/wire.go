@@ -8,6 +8,7 @@ import (
 	authPresentation "duonglt.net/internal/auth/presentation"
 	"duonglt.net/pkg/cache"
 	"duonglt.net/pkg/db"
+	"duonglt.net/pkg/email"
 	"duonglt.net/pkg/utils"
 	"github.com/google/wire"
 	"github.com/jmoiron/sqlx"
@@ -20,6 +21,7 @@ func Initialize() (*Router, error) {
 	wire.Build(
 		ResolveRouter,
 		ResolveDatabase,
+		ResolveEmailSender,
 		ResolveRedisClient,
 		ResolveSnowflakeManager,
 		auth.WireSet,
@@ -45,6 +47,18 @@ func ResolveDatabase() (*sqlx.DB, error) {
 	return dbIns.Get(), nil
 }
 
+// ResolveRedisClient function is used to resolve redis client
 func ResolveRedisClient() (*redis.Client, error) {
 	return cache.NewRedisClient(viper.GetString("REDIS_URL"))
+}
+
+// ResolveEmailSender function is used to resolve email sender
+func ResolveEmailSender() email.EmailSender {
+	return email.NewSMTPSender(email.SMTPOptions{
+		Host:     viper.GetString("MAIL_HOST"),
+		Port:     viper.GetInt("MAIL_PORT"),
+		User:     viper.GetString("MAIL_USER"),
+		Password: viper.GetString("MAIL_PASSWORD"),
+		From:     viper.GetString("MAIL_FROM_ADDRESS"),
+	})
 }

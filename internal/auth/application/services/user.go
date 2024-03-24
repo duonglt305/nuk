@@ -1,28 +1,30 @@
 package services
 
 import (
+	"fmt"
+	"html/template"
 	"time"
 
 	"duonglt.net/internal/auth/application/dtos"
 	"duonglt.net/internal/auth/domain/entities"
 	"duonglt.net/internal/auth/domain/repositories"
 	"duonglt.net/internal/auth/infrastructure/models"
+	"duonglt.net/pkg/email"
 	"duonglt.net/pkg/utils"
 )
 
 type UserService struct {
 	sfManager   *utils.SnowflakeManager
+	emailSender email.EmailSender
 	uRepository repositories.UserRepository[models.UserModel, entities.User]
 }
 
 func NewUserService(
 	sfManager *utils.SnowflakeManager,
+	emailSender email.EmailSender,
 	uRepository repositories.UserRepository[models.UserModel, entities.User],
 ) UserService {
-	return UserService{
-		sfManager:   sfManager,
-		uRepository: uRepository,
-	}
+	return UserService{sfManager, emailSender, uRepository}
 }
 
 // Create creates a new user
@@ -75,4 +77,13 @@ func (s UserService) Update(data dtos.UserUpdate) (entities.User, error) {
 		return *new(entities.User), err
 	}
 	return user, nil
+}
+
+func (s UserService) SendForgotPasswordEmail(data dtos.ForgotPassword) error {
+	t, err := template.ParseFiles("forgot.html")
+	if err != nil {
+		return err
+	}
+	fmt.Printf("forgot.html: %v\n", t)
+	return nil
 }

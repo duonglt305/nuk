@@ -10,11 +10,12 @@ import (
 )
 
 type HttpHandler struct {
-	profileHandler       profileHandler
-	tokenCreateHandler   tokenCreateHandler
-	tokenRefreshHandler  tokenRefreshHandler
-	registrationHandler  registrationHandler
-	updateProfileHandler updateProfileHandler
+	profileHandler        profileHandler
+	tokenCreateHandler    tokenCreateHandler
+	tokenRefreshHandler   tokenRefreshHandler
+	registrationHandler   registrationHandler
+	updateProfileHandler  updateProfileHandler
+	forgotPasswordHandler forgotPasswordHandler
 }
 
 func NewHttpHandler(
@@ -22,11 +23,12 @@ func NewHttpHandler(
 	authService services.TokenService,
 ) HttpHandler {
 	return HttpHandler{
-		profileHandler:       newProfileHandler(uService),
-		tokenCreateHandler:   newTokenCreateHandler(uService, authService),
-		tokenRefreshHandler:  newTokenRefreshHandler(authService),
-		registrationHandler:  newRegistrationHandler(uService),
-		updateProfileHandler: newUpdateProfileHandler(uService),
+		profileHandler:        newProfileHandler(uService),
+		tokenCreateHandler:    newTokenCreateHandler(uService, authService),
+		tokenRefreshHandler:   newTokenRefreshHandler(authService),
+		registrationHandler:   newRegistrationHandler(uService),
+		updateProfileHandler:  newUpdateProfileHandler(uService),
+		forgotPasswordHandler: newForgotPasswordHandler(uService),
 	}
 }
 
@@ -36,6 +38,7 @@ func (h HttpHandler) RegisterHandlers(mux *http.ServeMux, authenticated func(htt
 	mux.Handle("POST /auth/token", h.tokenCreateHandler)
 	mux.Handle("POST /auth/token/refresh", h.tokenRefreshHandler)
 	mux.Handle("POST /auth/registration", h.registrationHandler)
+	mux.Handle("POST /auth/password/forgot", h.forgotPasswordHandler)
 }
 
 // TokenCreateHandler is used to handle token creation
@@ -168,4 +171,27 @@ func (h updateProfileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	vHttp.Ok(w, u)
+}
+
+// forgotPasswordHandler is used to handle forgot password
+
+type forgotPasswordHandler struct {
+	uService services.UserService
+}
+
+func newForgotPasswordHandler(uService services.UserService) forgotPasswordHandler {
+	return forgotPasswordHandler{uService}
+}
+
+func (h forgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	body := dtos.ForgotPassword{}
+	if err := vHttp.NewValidator(r, &body); err != nil {
+		vHttp.Error(w, err)
+		return
+	}
+	if err := h.uService.SendForgotPasswordEmail(body); err != nil {
+		vHttp.Error(w, err)
+		return
+	}
+	vHttp.Ok(w, nil)
 }
