@@ -1,7 +1,7 @@
 package services
 
 import (
-	"fmt"
+	"bytes"
 	"html/template"
 	"time"
 
@@ -80,10 +80,18 @@ func (s UserService) Update(data dtos.UserUpdate) (entities.User, error) {
 }
 
 func (s UserService) SendForgotPasswordEmail(data dtos.ForgotPassword) error {
-	t, err := template.ParseFiles("forgot.html")
+	t, err := template.ParseFiles("templates/email/passwords/forgot.html")
 	if err != nil {
 		return err
 	}
-	fmt.Printf("forgot.html: %v\n", t)
+	var body bytes.Buffer
+
+	// Execute the template with the data
+	if err := t.Execute(&body, data); err != nil {
+		return err
+	}
+	if err := s.emailSender.Se22nd(data.Email, "Forgot Password", body.Bytes()); err != nil {
+		return err
+	}
 	return nil
 }
