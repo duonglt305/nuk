@@ -90,7 +90,7 @@ func (s UserService) SendForgotPasswordEmail(data dtos.ForgotPassword) error {
 	if err := t.Execute(&body, data); err != nil {
 		return err
 	}
-	if err := s.emailSender.Se22nd(data.Email, "Forgot Password", body.Bytes()); err != nil {
+	if err := s.emailSender.Send(data.Email, "Forgot Password", body.Bytes()); err != nil {
 		return err
 	}
 	return nil
