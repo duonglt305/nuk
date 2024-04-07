@@ -3,6 +3,7 @@ package services
 import (
 	"bytes"
 	"html/template"
+	"log"
 	"time"
 
 	"duonglt.net/internal/auth/application/dtos"
@@ -90,6 +91,7 @@ func (s UserService) SendForgotPasswordEmail(data dtos.ForgotPassword) error {
 	if err := t.Execute(&body, data); err != nil {
 		return err
 	}
+	log.Printf("body: %s", body.String())
 	if err := s.emailSender.Send(data.Email, "Forgot Password", body.Bytes()); err != nil {
 		return err
 	}

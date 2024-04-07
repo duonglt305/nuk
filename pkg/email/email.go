@@ -38,9 +38,7 @@ func NewSMTPSender(opts SMTPOptions) EmailSender {
 
 func (s *SMTPSender) Send(to string, subject string, body []byte) error {
 	auth := smtp.PlainAuth("", s.user, s.password, s.host)
-
 	server := fmt.Sprintf("%s:%d", s.host, s.port)
-	log.Println(server)
 	err := smtp.SendMail(server, auth, s.from, []string{to}, body)
 	if err != nil {
 		log.Printf("failed to send email: %+v\n", err)
