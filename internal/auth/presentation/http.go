@@ -38,7 +38,7 @@ func (h HttpHandler) RegisterHandlers(mux *http.ServeMux, authenticated func(htt
 	mux.Handle("POST /auth/token", h.tokenCreateHandler)
 	mux.Handle("POST /auth/token/refresh", h.tokenRefreshHandler)
 	mux.Handle("POST /auth/registration", h.registrationHandler)
-	mux.Handle("POST /auth/password/forgot", h.forgotPasswordHandler)
+	mux.Handle("GET /auth/password/forgot", h.forgotPasswordHandler)
 }
 
 // TokenCreateHandler is used to handle token creation
