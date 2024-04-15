@@ -5,6 +5,11 @@ import (
 	"time"
 )
 
+var (
+	once sync.Once
+	sf   *SnowflakeManager
+)
+
 const (
 	// SfTimestampBits is used to define timestamp bits
 	SfTimestampBits uint16 = 41
@@ -43,13 +48,16 @@ type SnowflakeManager struct {
 	lastTs   uint64
 }
 
-// NewSfService function is used to create a new snowflake service
-func NewSfService(worker uint16) *SnowflakeManager {
-	return &SnowflakeManager{
-		worker:   worker,
-		sequence: 0,
-		lastTs:   0,
-	}
+// NewSnowflakeManager function is used to create a new snowflake service
+func NewSnowflakeManager(worker uint16) *SnowflakeManager {
+	once.Do(func() {
+		sf = &SnowflakeManager{
+			worker:   worker,
+			sequence: 0,
+			lastTs:   0,
+		}
+	})
+	return sf
 }
 
 // waitNextMillis function is used to wait until next millisecond

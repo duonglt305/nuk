@@ -35,7 +35,7 @@ func ResolveRouter(handler authPresentation.HttpHandler, authenticated authPrese
 
 // ResolveSnowflakeService function is used to resolve snowflake service
 func ResolveSnowflakeManager() *utils.SnowflakeManager {
-	return utils.NewSfService(uint16(viper.GetInt("SF_WORKER")))
+	return utils.NewSnowflakeManager(uint16(viper.GetInt("SF_WORKER")))
 }
 
 // ResolveDatabase function is used to resolve pg client

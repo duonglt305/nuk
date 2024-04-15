@@ -1,8 +1,6 @@
 package services
 
 import (
-	"bytes"
-	"html/template"
 	"log"
 	"time"
 
@@ -81,19 +79,16 @@ func (s UserService) Update(data dtos.UserUpdate) (entities.User, error) {
 }
 
 func (s UserService) SendForgotPasswordEmail(data dtos.ForgotPassword) error {
-	t, err := template.ParseFiles("templates/email/passwords/forgot.html")
+	parser := utils.NewHtmlParser("templates")
+	parser.Parse()
+	body, err := parser.Render("email.passwords.forgot", data)
 	if err != nil {
-		return err
+		log.Printf("error: %s", err)
 	}
-	var body bytes.Buffer
 
-	// Execute the template with the data
-	if err := t.Execute(&body, data); err != nil {
-		return err
-	}
 	log.Printf("body: %s", body.String())
-	if err := s.emailSender.Send(data.Email, "Forgot Password", body.Bytes()); err != nil {
-		return err
-	}
+	// if err := s.emailSender.Send(data.Email, "Forgot Password", body.Bytes()); err != nil {
+	// 	return err
+	// }
 	return nil
 }
