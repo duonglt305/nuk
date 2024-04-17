@@ -78,29 +78,5 @@ func (s UserService) Update(data dtos.UserUpdate) (entities.User, error) {
 }
 
 func (s UserService) SendForgotPasswordEmail(data dtos.ForgotPassword) error {
-	_, err := s.uRepository.FindByEmail(data.Email)
-	if err != nil {
-		return err
-	}
-	files := []string{
-		"templates/email/base.html",
-		"templates/email/partials/styles.html",
-		"templates/email/partials/footer.html",
-		"templates/email/passwords/forgot.html",
-	}
-	body, err := utils.ParseHTML(
-		"base",
-		map[string]interface{}{
-			"subject": "Forgot Password",
-			"link":    "",
-		},
-		files...,
-	)
-	if err != nil {
-		return err
-	}
-	if err := s.emailSender.Send(data.Email, "Forgot Password", body.Bytes()); err != nil {
-		return err
-	}
 	return nil
 }
