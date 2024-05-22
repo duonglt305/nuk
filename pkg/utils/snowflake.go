@@ -6,8 +6,8 @@ import (
 )
 
 var (
-	once sync.Once
-	sf   *SnowflakeManager
+	once      sync.Once
+	sfManager *SnowflakeManager
 )
 
 const (
@@ -51,13 +51,13 @@ type SnowflakeManager struct {
 // NewSnowflakeManager function is used to create a new snowflake service
 func NewSnowflakeManager(worker uint16) *SnowflakeManager {
 	once.Do(func() {
-		sf = &SnowflakeManager{
+		sfManager = &SnowflakeManager{
 			worker:   worker,
 			sequence: 0,
 			lastTs:   0,
 		}
 	})
-	return sf
+	return sfManager
 }
 
 // waitNextMillis function is used to wait until next millisecond
