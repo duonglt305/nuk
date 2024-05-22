@@ -1,13 +1,11 @@
 package repositories
 
 import (
-	"context"
 	"fmt"
 	"time"
 
-	"github.com/redis/go-redis/v9"
-
 	authRepositories "duonglt.net/internal/auth/domain/repositories"
+	"duonglt.net/pkg/cache"
 )
 
 const (
@@ -16,26 +14,26 @@ const (
 
 // TokenRepository struct is used to define token repository
 type TokenRepository struct {
-	rdb *redis.Client
+	cache cache.ICache
 }
 
 // NewTokenRepository function is used to create a new token repository
 func NewTokenRepository(
-	rdb *redis.Client,
+	cache cache.ICache,
 ) authRepositories.ITokenRepository {
-	return TokenRepository{rdb}
+	return TokenRepository{cache}
 }
 
 // AddToBlacklist function is used to add token to blacklist
 func (rep TokenRepository) AddToBlacklist(uid uint64, expiresIn time.Duration) error {
 	key := fmt.Sprintf("%s:%d", blacklistKey, uid)
-	rep.rdb.Set(context.Background(), key, true, expiresIn)
+	rep.cache.Set(key, true, expiresIn)
 	return nil
 }
 
 // IsBlacklisted function is used to check if token is blacklisted
 func (rep TokenRepository) IsBlacklisted(uid uint64) bool {
 	key := fmt.Sprintf("%s:%d", blacklistKey, uid)
-	_, err := rep.rdb.Get(context.Background(), key).Result()
+	_, err := rep.cache.Get(key)
 	return err == nil
 }

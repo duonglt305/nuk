@@ -12,17 +12,16 @@ import (
 	"duonglt.net/pkg/utils"
 	"github.com/google/wire"
 	"github.com/jmoiron/sqlx"
-	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 )
 
 // InitializeRouter function is used to initialize router
 func Initialize() (*Router, error) {
 	wire.Build(
+		ResolveCache,
 		ResolveRouter,
 		ResolveDatabase,
 		ResolveEmailSender,
-		ResolveRedisClient,
 		ResolveSnowflakeManager,
 		auth.WireSet,
 	)
@@ -48,8 +47,8 @@ func ResolveDatabase() (*sqlx.DB, error) {
 }
 
 // ResolveRedisClient function is used to resolve redis client
-func ResolveRedisClient() (*redis.Client, error) {
-	return cache.NewRedisClient(viper.GetString("REDIS_URL"))
+func ResolveCache() (cache.ICache, error) {
+	return cache.New(viper.GetString("CACHE_DRIVER"), viper.GetString("CACHE_URL"))
 }
 
 // ResolveEmailSender function is used to resolve email sender
