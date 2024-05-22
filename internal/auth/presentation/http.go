@@ -38,7 +38,7 @@ func (h HttpHandler) RegisterHandlers(mux *http.ServeMux, authenticated func(htt
 	mux.Handle("POST /auth/token", h.tokenCreateHandler)
 	mux.Handle("POST /auth/token/refresh", h.tokenRefreshHandler)
 	mux.Handle("POST /auth/registration", h.registrationHandler)
-	mux.Handle("GET /auth/password/forgot", h.forgotPasswordHandler)
+	mux.Handle("POST /auth/passwords/forgot", h.forgotPasswordHandler)
 }
 
 // TokenCreateHandler is used to handle token creation
@@ -193,5 +193,5 @@ func (h forgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		vHttp.Error(w, err)
 		return
 	}
-	vHttp.Ok(w, nil)
+	vHttp.Ok(w, map[string]string{"message": "Your request has been sent. Please check your email"})
 }
