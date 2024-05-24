@@ -11,7 +11,7 @@ type RedisCache struct {
 	client *redis.Client
 }
 
-// NewRedisClient creates a new redis client
+// Connect connects to a Redis server
 func (rc *RedisCache) Connect(redisUrl string) error {
 	opts, err := redis.ParseURL(redisUrl)
 
@@ -28,10 +28,17 @@ func (rc *RedisCache) Connect(redisUrl string) error {
 	return nil
 }
 
+// Set sets a key-value pair with an expiration time
 func (rc *RedisCache) Set(key string, value any, expiration time.Duration) error {
 	return rc.client.Set(context.Background(), key, value, expiration).Err()
 }
 
+// Get gets a value by key
 func (rc *RedisCache) Get(key string) (string, error) {
 	return rc.client.Get(context.Background(), key).Result()
+}
+
+// Delete deletes a key
+func (rc *RedisCache) Delete(key string) error {
+	return rc.client.Del(context.Background(), key).Err()
 }

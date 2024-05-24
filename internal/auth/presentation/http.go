@@ -90,6 +90,7 @@ func newTokenRefreshHandler(authService services.TokenService) tokenRefreshHandl
 	return tokenRefreshHandler{tokenService: authService}
 }
 
+// extractToken is used to extract token from request
 func (h tokenRefreshHandler) extractToken(r *http.Request) (string, error) {
 	return r.Header.Get("Authorization"), nil
 }
@@ -140,7 +141,7 @@ func newProfileHandler(uService services.UserService) profileHandler {
 }
 
 func (h profileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	uid := r.Context().Value("UID").(uint64)
+	uid := r.Context().Value(ContextUidKey).(uint64)
 	u, err := h.uService.FindByID(uid)
 	if err != nil {
 		vHttp.Error(w, err)
@@ -159,7 +160,7 @@ func newUpdateProfileHandler(uService services.UserService) updateProfileHandler
 }
 
 func (h updateProfileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	uid := r.Context().Value("UID").(uint64)
+	uid := r.Context().Value(ContextUidKey).(uint64)
 	body := dtos.UserUpdate{Id: uid}
 	if err := vHttp.NewValidator(r, &body); err != nil {
 		vHttp.Error(w, err)
@@ -193,5 +194,5 @@ func (h forgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		vHttp.Error(w, err)
 		return
 	}
-	vHttp.Ok(w, map[string]string{"message": "Your request has been sent. Please check your email"})
+	vHttp.Ok(w, map[string]string{"message": "Email sent successfully"})
 }

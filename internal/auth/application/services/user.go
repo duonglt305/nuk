@@ -1,12 +1,14 @@
 package services
 
 import (
+	"log/slog/internal/buffer"
 	"time"
 
 	"duonglt.net/internal/auth/application/dtos"
 	"duonglt.net/internal/auth/domain/entities"
 	"duonglt.net/internal/auth/domain/repositories"
 	"duonglt.net/internal/auth/infrastructure/models"
+	"duonglt.net/pkg/db"
 	"duonglt.net/pkg/email"
 	"duonglt.net/pkg/utils"
 )
@@ -14,15 +16,17 @@ import (
 type UserService struct {
 	sfManager   *utils.SnowflakeManager
 	emailSender email.EmailSender
+	otp         OtpService
 	uRepository repositories.UserRepository[models.UserModel, entities.User]
 }
 
 func NewUserService(
 	sfManager *utils.SnowflakeManager,
 	emailSender email.EmailSender,
+	otp OtpService,
 	uRepository repositories.UserRepository[models.UserModel, entities.User],
 ) UserService {
-	return UserService{sfManager, emailSender, uRepository}
+	return UserService{sfManager, emailSender, otp, uRepository}
 }
 
 // Create creates a new user
@@ -52,7 +56,7 @@ func (s UserService) FindByEmail(email string) (entities.User, error) {
 
 // FindByID finds a user by ID
 func (s UserService) FindByID(id uint64) (entities.User, error) {
-	return s.uRepository.FindById(id)
+	return s.uRepository.FindOne(db.Eq("id", id))
 }
 
 // MarkAsLogged marks a user as logged
@@ -82,24 +86,9 @@ func (s UserService) SendForgotPasswordEmail(data dtos.ForgotPassword) error {
 	if err != nil {
 		return err
 	}
-	files := []string{
-		"templates/email/base.html",
-		"templates/email/partials/styles.html",
-		"templates/email/partials/footer.html",
-		"templates/email/passwords/forgot.html",
-	}
-	body, err := utils.ParseHTML(
-		"base",
-		map[string]interface{}{
-			"subject": "Forgot Password",
-			"link":    "",
-		},
-		files...,
-	)
-	if err != nil {
-		return err
-	}
-	if err := s.emailSender.Send(data.Email, "Forgot Password", body.Bytes()); err != nil {
+	var buff buffer.Buffer
+
+	if err := s.emailSender.Send(data.Email, "Forgot Password", []byte{}); err != nil {
 		return err
 	}
 	return nil

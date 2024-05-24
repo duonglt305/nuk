@@ -17,9 +17,10 @@ import (
 // WireSet is used to wire the dependencies of auth module
 var WireSet = wire.NewSet(
 	ResolveTokenManager,
-	ResolveAuthService,
+	ResolveTokenService,
 	ResolveUserRepository,
 	infrRepositories.NewTokenRepository,
+	services.NewOtpService,
 	services.NewUserService,
 	presentation.NewAuthMiddleware,
 	presentation.NewHttpHandler,
@@ -34,8 +35,8 @@ func ResolveTokenManager() jwt.TokenManager[entities.Token] {
 	return jwt.NewTokenManager[entities.Token]([]byte(viper.GetString("JWT_SECRET")))
 }
 
-// ResolveAuthService function is used to resolve auth service
-func ResolveAuthService(
+// ResolveTokenService function is used to resolve auth service
+func ResolveTokenService(
 	sfManager *utils.SnowflakeManager,
 	jwtService jwt.TokenManager[entities.Token],
 	tokenRepository repositories.ITokenRepository,

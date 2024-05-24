@@ -4,21 +4,23 @@ import (
 	"context"
 	"net/http"
 
+	"duonglt.net/pkg/cache"
 	vHttp "duonglt.net/pkg/http"
 
 	"duonglt.net/internal/auth/application/services"
 )
 
 const (
-	ContextUidKey = "UID"
+	ContextUidKey = "uid"
 )
 
 type AuthMiddleware struct {
 	tokenService services.TokenService
+	cache        cache.ICache
 }
 
-func NewAuthMiddleware(tokenService services.TokenService) AuthMiddleware {
-	return AuthMiddleware{tokenService}
+func NewAuthMiddleware(tokenService services.TokenService, cache cache.ICache) AuthMiddleware {
+	return AuthMiddleware{tokenService, cache}
 }
 
 func (m AuthMiddleware) Handle(next http.Handler) http.Handler {
