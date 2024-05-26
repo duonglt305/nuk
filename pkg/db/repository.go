@@ -11,9 +11,11 @@ import (
 
 type IRepository[E any, M any] interface {
 	FindById(id uint64) (E, error)
+	Find(spec Specification) ([]E, error)
+	FindOne(spec Specification) (E, error)
 	Save(entity *E) error
 	Update(entity *E) error
-	Delete(id uint64) error
+	Delete(spec Specification) error
 }
 
 type IModel[E any] interface {
@@ -42,14 +44,33 @@ func (rep Repository[M, E]) getFields(model M) []string {
 	return fields
 }
 
-// FindById finds a model by its id
-func (rep Repository[M, E]) FindById(id uint64) (E, error) {
+// FindOne finds a model by a specification
+func (rep Repository[M, E]) FindOne(spec Specification) (E, error) {
 	var model M
-	sql := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", model.Table())
-	if err := rep.db.Get(&model, sql, id); err != nil {
+	sql := fmt.Sprintf("SELECT * FROM %s WHERE %s", model.Table(), spec.GetQuery())
+	if err := rep.db.Get(&model, sql, spec.GetValues()...); err != nil {
 		return *new(E), err
 	}
 	return model.ToEntity(), nil
+}
+
+// Find finds models by a specification
+func (rep Repository[M, E]) Find(spec Specification) ([]E, error) {
+	var models []M
+	sql := fmt.Sprintf("SELECT * FROM %s WHERE %s", models[0].Table(), spec.GetQuery())
+	if err := rep.db.Select(&models, sql, spec.GetValues()...); err != nil {
+		return nil, err
+	}
+	entities := make([]E, len(models))
+	for i, model := range models {
+		entities[i] = model.ToEntity()
+	}
+	return entities, nil
+}
+
+// FindById finds a model by its id
+func (rep Repository[M, E]) FindById(id uint64) (E, error) {
+	return rep.FindOne(Eq("id", id))
 }
 
 // Save saves a model
@@ -57,7 +78,7 @@ func (rep Repository[M, E]) Save(entity *E) error {
 	var model M
 	model = model.FromEntity(*entity).(M)
 	fields := rep.getFields(model)
-	namedFields := utils.Map[string, string](func(field string) string {
+	namedFields := utils.Map(func(field string) string {
 		return fmt.Sprintf(":%s", field)
 	}, fields)
 	sql := fmt.Sprintf(
@@ -78,7 +99,7 @@ func (rep Repository[M, E]) Update(entity *E) error {
 	var model M
 	model = model.FromEntity(*entity).(M)
 	fields := rep.getFields(model)
-	namedFields := utils.Map[string, string](func(field string) string {
+	namedFields := utils.Map(func(field string) string {
 		return fmt.Sprintf("%s = :%s", field, field)
 	}, fields)
 
@@ -94,11 +115,11 @@ func (rep Repository[M, E]) Update(entity *E) error {
 	return nil
 }
 
-// Delete deletes a model by its id
-func (rep Repository[M, E]) Delete(id uint64) error {
+// Delete deletes models by a specification
+func (rep Repository[M, E]) Delete(spec Specification) error {
 	var model M
-	sql := fmt.Sprintf("DELETE FROM %s WHERE id = $1", model.Table())
-	if _, err := rep.db.Exec(sql, id); err != nil {
+	sql := fmt.Sprintf("DELETE FROM %s WHERE %s", model.Table(), spec.GetQuery())
+	if _, err := rep.db.Exec(sql, spec.GetValues()...); err != nil {
 		return err
 	}
 	return nil

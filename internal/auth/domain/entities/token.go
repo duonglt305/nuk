@@ -1,6 +1,8 @@
 package entities
 
-import "time"
+import (
+	"time"
+)
 
 type Token struct {
 	ID        uint64    `json:"id"`
