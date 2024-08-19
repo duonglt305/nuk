@@ -40,7 +40,7 @@ func NotFound(w http.ResponseWriter) {
 func Unauthorized(w http.ResponseWriter, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusUnauthorized)
-	body := map[string]string{"message": "Unauthorized", "code": unauthorized}
+	body := map[string]string{"message": err.Error(), "code": unauthorized}
 	if err := json.NewEncoder(w).Encode(body); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

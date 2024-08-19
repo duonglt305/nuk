@@ -2,23 +2,43 @@ package cache
 
 import (
 	"context"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 )
 
-// NewRedisClient creates a new redis client
-func NewRedisClient(redisUrl string) (*redis.Client, error) {
+type RedisCache struct {
+	client *redis.Client
+}
+
+// Connect connects to a Redis server
+func (rc *RedisCache) Connect(redisUrl string) error {
 	opts, err := redis.ParseURL(redisUrl)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	rdb := redis.NewClient(opts)
+	rc.client = redis.NewClient(opts)
 
-	if _, err := rdb.Ping(context.Background()).Result(); err != nil {
-		return nil, err
+	if _, err := rc.client.Ping(context.Background()).Result(); err != nil {
+		return err
 	}
 
-	return rdb, nil
+	return nil
+}
+
+// Set sets a key-value pair with an expiration time
+func (rc *RedisCache) Set(key string, value any, expiration time.Duration) error {
+	return rc.client.Set(context.Background(), key, value, expiration).Err()
+}
+
+// Get gets a value by key
+func (rc *RedisCache) Get(key string) (string, error) {
+	return rc.client.Get(context.Background(), key).Result()
+}
+
+// Delete deletes a key
+func (rc *RedisCache) Delete(key string) error {
+	return rc.client.Del(context.Background(), key).Err()
 }
