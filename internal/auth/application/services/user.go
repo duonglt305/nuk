@@ -1,7 +1,6 @@
 package services
 
 import (
-	"log/slog/internal/buffer"
 	"time"
 
 	"duonglt.net/internal/auth/application/dtos"
@@ -86,7 +85,6 @@ func (s UserService) SendForgotPasswordEmail(data dtos.ForgotPassword) error {
 	if err != nil {
 		return err
 	}
-	var buff buffer.Buffer
 
 	if err := s.emailSender.Send(data.Email, "Forgot Password", []byte{}); err != nil {
 		return err
