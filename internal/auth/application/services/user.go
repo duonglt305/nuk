@@ -80,6 +80,7 @@ func (s UserService) Update(data dtos.UserUpdate) (entities.User, error) {
 	return user, nil
 }
 
+// SendForgotPasswordEmail sends a forgot password email
 func (s UserService) SendForgotPasswordEmail(data dtos.ForgotPassword) error {
 	_, err := s.uRepository.FindByEmail(data.Email)
 	if err != nil {
