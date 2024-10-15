@@ -77,9 +77,7 @@ func (s *SnowflakeManager) Create() *Snowflake {
 	if timestamp == s.lastTs {
 		s.sequence = (s.sequence + 1) & ((1 << SfSequenceBits) - 1)
 		if s.sequence == 0 {
-			for timestamp <= s.lastTs {
-				timestamp = s.waitNextMillis()
-			}
+			timestamp = s.waitNextMillis()
 		}
 	} else {
 		s.sequence = 0
