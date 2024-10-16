@@ -31,13 +31,23 @@ type Snowflake struct {
 }
 
 // Uint64 function is used to convert snowflake id to uint64
-func (s *Snowflake) Uint64() uint64 {
+func (s Snowflake) Uint64() uint64 {
 	return (s.timestamp-SfEpoch)<<(SfBits-SfTimestampBits) | uint64(s.worker)<<SfSequenceBits | uint64(s.sequence)
 }
 
 // Timestamp function is used to get timestamp from snowflake id
-func (s *Snowflake) Timestamp() time.Time {
+func (s Snowflake) Timestamp() time.Time {
 	return time.Unix(int64(s.timestamp), 0)
+}
+
+// Worker function is used to get worker from snowflake id
+func (s Snowflake) Worker() uint16 {
+	return s.worker
+}
+
+// Sequence function is used to get sequence from snowflake id
+func (s Snowflake) Sequence() uint16 {
+	return s.sequence
 }
 
 // SnowflakeManager struct is used to define snowflake service
@@ -91,11 +101,11 @@ func (s *SnowflakeManager) Create() *Snowflake {
 }
 
 // Extract function is used to extract snowflake id
-func (s *SnowflakeManager) Extract(sf uint64) *Snowflake {
+func (s *SnowflakeManager) Extract(sf uint64) Snowflake {
 	worker := uint16((sf >> uint64(SfSequenceBits)) & ((1 << uint64(SfWorkerBits)) - 1))
 	timestamp := (sf >> (SfBits - SfTimestampBits)) + SfEpoch
 	sequence := uint16(sf & ((1 << SfSequenceBits) - 1))
-	return &Snowflake{
+	return Snowflake{
 		sequence:  sequence,
 		worker:    worker,
 		timestamp: timestamp,

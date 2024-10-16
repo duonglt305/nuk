@@ -39,7 +39,7 @@ func ResolveSnowflakeManager() *utils.SnowflakeManager {
 
 // ResolveDatabase function is used to resolve pg client
 func ResolveDatabase() (*sqlx.DB, error) {
-	dbIns, err := db.New(viper.GetString("DATABASE_DRIVER"), viper.GetString("DATABASE_URL"))
+	dbIns, err := db.New(viper.GetString("DB_DRIVER"), viper.GetString("DB_DRIVER"))
 	if err != nil {
 		return nil, err
 	}

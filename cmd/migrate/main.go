@@ -9,9 +9,7 @@ import (
 	v4 "github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
-	_ "github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/spf13/viper"
 )
@@ -40,15 +38,16 @@ func main() {
 
 func initial() *v4.Migrate {
 	var dbDriver database.Driver
+	var dbIns db.IRds
 	var err error
-	driver := viper.GetString("DATABASE_DRIVER")
-	dbUrl := viper.GetString("DATABASE_URL")
+	driver := viper.GetString("DB_DRIVER")
+	dbUrl := viper.GetString("DB_URL")
 	if driver == "" {
-		log.Println("DATABASE_DRIVER is not set")
+		log.Println("DB_DRIVER is not set")
 		os.Exit(1)
 	}
 	path := fmt.Sprintf("file://db/migrations/%s", driver)
-	dbIns, err := db.New(driver, dbUrl)
+	dbIns, err = db.New(driver, dbUrl)
 	if err != nil {
 		log.Printf("failed to connect to database: %+v\n", err)
 		os.Exit(1)
@@ -58,6 +57,10 @@ func initial() *v4.Migrate {
 		dbDriver, err = mysql.WithInstance(dbIns.Get().DB, &mysql.Config{})
 	case db.PGSQLDriver:
 		dbDriver, err = postgres.WithInstance(dbIns.Get().DB, &postgres.Config{})
+	}
+	if err != nil {
+		log.Printf("failed to initial database driver: %+v\n", err)
+		os.Exit(1)
 	}
 	m, err := v4.NewWithDatabaseInstance(path, "postgres", dbDriver)
 	if err != nil {
