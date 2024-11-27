@@ -6,7 +6,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type User struct {
+type UserEntity struct {
 	Id        uint64     `json:"id"`
 	Email     string     `json:"email"`
 	Password  string     `json:"-"`
@@ -17,7 +17,7 @@ type User struct {
 }
 
 // HashPassword hashes the user's password using bcrypt
-func (u *User) HashPassword() error {
+func (u *UserEntity) HashPassword() error {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -27,6 +27,6 @@ func (u *User) HashPassword() error {
 }
 
 // ComparePassword compares the user's password with the provided password
-func (u User) ComparePassword(password string) bool {
+func (u UserEntity) ComparePassword(password string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password)) == nil
 }

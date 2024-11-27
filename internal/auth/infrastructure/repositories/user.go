@@ -8,13 +8,13 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type UserRepository[M db.IModel[E], E entities.User] struct {
+type UserRepository[M db.IModel[E], E entities.UserEntity] struct {
 	db.Repository[M, E]
 	dbIns *sqlx.DB
 }
 
 // NewUserRepository is a constructor to create a new UserRepository
-func NewUserRepository[M db.IModel[E], E entities.User](dbIns *sqlx.DB) UserRepository[M, E] {
+func NewUserRepository[M db.IModel[E], E entities.UserEntity](dbIns *sqlx.DB) UserRepository[M, E] {
 	return UserRepository[M, E]{
 		Repository: db.NewRepository[M](dbIns),
 		dbIns:      dbIns,

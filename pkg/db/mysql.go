@@ -15,10 +15,10 @@ func (rds *MySQLRds) Connect(dbUrl string) error {
 	var err error
 	rds.db, err = sqlx.Connect("mysql", dbUrl)
 	if err != nil {
-		return fmt.Errorf("failed to connect to database: %+v\n", err)
+		return fmt.Errorf("failed to connect to database: %+v", err)
 	}
 	if err := rds.db.Ping(); err != nil {
-		return fmt.Errorf("failed to ping database: %+v\n", err)
+		return fmt.Errorf("failed to ping database: %+v", err)
 	}
 	return nil
 }

@@ -42,3 +42,14 @@ func (rc *RedisCache) Get(key string) (string, error) {
 func (rc *RedisCache) Delete(key string) error {
 	return rc.client.Del(context.Background(), key).Err()
 }
+
+// Lock locks a key with a value and expiration time
+func (rc *RedisCache) Lock(key string, expiration time.Duration) (bool, error) {
+	val := "lock"
+	return rc.client.SetNX(context.Background(), key, val, expiration).Result()
+}
+
+// Unlock unlocks a key
+func (rc *RedisCache) Unlock(key string) error {
+	return rc.client.Del(context.Background(), key).Err()
+}

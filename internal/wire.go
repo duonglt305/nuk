@@ -23,13 +23,18 @@ func Initialize() (*Router, error) {
 		ResolveDatabase,
 		ResolveEmailSender,
 		ResolveSnowflakeManager,
+		NewHttpHandler,
 		auth.WireSet,
 	)
 	return &Router{}, nil
 }
 
-func ResolveRouter(handler authPresentation.HttpHandler, authenticated authPresentation.AuthMiddleware) *Router {
-	return NewRouter(viper.GetString("PORT"), handler, authenticated)
+func ResolveRouter(
+	root HttpHandler,
+	auth authPresentation.HttpHandler,
+	authenticated authPresentation.AuthMiddleware,
+) *Router {
+	return NewRouter(viper.GetString("PORT"), root, auth, authenticated)
 }
 
 // ResolveSnowflakeService function is used to resolve snowflake service
@@ -39,7 +44,7 @@ func ResolveSnowflakeManager() *utils.SnowflakeManager {
 
 // ResolveDatabase function is used to resolve pg client
 func ResolveDatabase() (*sqlx.DB, error) {
-	dbIns, err := db.New(viper.GetString("DB_DRIVER"), viper.GetString("DB_DRIVER"))
+	dbIns, err := db.New(viper.GetString("DB_DRIVER"), viper.GetString("DB_URL"))
 	if err != nil {
 		return nil, err
 	}

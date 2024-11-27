@@ -18,7 +18,7 @@ import (
 // TokenService struct is used to define auth service
 type TokenService struct {
 	sfManager       *utils.SnowflakeManager
-	jwtService      jwt.TokenManager[entities.Token]
+	jwtService      jwt.TokenManager[entities.TokenEntity]
 	tokenRepository repositories.ITokenRepository
 	accessLifetime  time.Duration
 	refreshLifetime time.Duration
@@ -27,7 +27,7 @@ type TokenService struct {
 // NewTokenService function is used to create a new auth service
 func NewTokenService(
 	sfManager *utils.SnowflakeManager,
-	jwtService jwt.TokenManager[entities.Token],
+	jwtService jwt.TokenManager[entities.TokenEntity],
 	tokenRepository repositories.ITokenRepository,
 	accessLifetime time.Duration,
 	refreshLifetime time.Duration,
@@ -73,7 +73,7 @@ func (serv TokenService) createToken(
 	if *tkid == 0 {
 		*tkid = id
 	}
-	tk := entities.Token{
+	tk := entities.TokenEntity{
 		ID:        id,
 		Uid:       uid,
 		CreatedAt: createdAt,
@@ -105,8 +105,8 @@ func (serv TokenService) RefreshToken(refreshToken string) (*dtos.AuthToken, err
 }
 
 // VerifyToken function is used to verify token
-func (serv TokenService) VerifyToken(token string) (*entities.Token, error) {
-	tk := new(entities.Token)
+func (serv TokenService) VerifyToken(token string) (*entities.TokenEntity, error) {
+	tk := new(entities.TokenEntity)
 	claims, err := serv.jwtService.ExtractClaims(token)
 	if err != nil {
 		return tk, err

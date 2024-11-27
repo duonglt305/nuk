@@ -16,22 +16,22 @@ type UserService struct {
 	sfManager   *utils.SnowflakeManager
 	emailSender email.EmailSender
 	otp         OtpService
-	uRepository repositories.UserRepository[models.UserModel, entities.User]
+	uRepository repositories.UserRepository[models.User, entities.UserEntity]
 }
 
 func NewUserService(
 	sfManager *utils.SnowflakeManager,
 	emailSender email.EmailSender,
 	otp OtpService,
-	uRepository repositories.UserRepository[models.UserModel, entities.User],
+	uRepository repositories.UserRepository[models.User, entities.UserEntity],
 ) UserService {
 	return UserService{sfManager, emailSender, otp, uRepository}
 }
 
 // Create creates a new user
-func (s UserService) Create(data dtos.UserCreate) (*entities.User, error) {
+func (s UserService) Create(data dtos.UserCreate) (*entities.UserEntity, error) {
 	now := time.Now().UTC()
-	user := &entities.User{
+	user := &entities.UserEntity{
 		Id:        s.sfManager.New(),
 		Email:     data.Email,
 		Password:  data.Password,
@@ -49,33 +49,33 @@ func (s UserService) Create(data dtos.UserCreate) (*entities.User, error) {
 }
 
 // FindByEmail finds a user by email
-func (s UserService) FindByEmail(email string) (entities.User, error) {
+func (s UserService) FindByEmail(email string) (entities.UserEntity, error) {
 	return s.uRepository.FindByEmail(email)
 }
 
 // FindByID finds a user by ID
-func (s UserService) FindByID(id uint64) (entities.User, error) {
+func (s UserService) FindByID(id uint64) (entities.UserEntity, error) {
 	return s.uRepository.FindOne(db.Eq("id", id))
 }
 
 // MarkAsLogged marks a user as logged
-func (s UserService) MarkAsLogged(user entities.User) error {
+func (s UserService) MarkAsLogged(user entities.UserEntity) error {
 	now := time.Now().UTC()
 	user.LoggedAt = &now
 	return s.uRepository.Update(&user)
 }
 
 // Update updates a user
-func (s UserService) Update(data dtos.UserUpdate) (entities.User, error) {
+func (s UserService) Update(data dtos.UserUpdate) (entities.UserEntity, error) {
 	now := time.Now().UTC()
 	user, err := s.uRepository.FindById(data.Id)
 	if err != nil {
-		return *new(entities.User), err
+		return *new(entities.UserEntity), err
 	}
 	user.Bio = data.Bio
 	user.UpdatedAt = &now
 	if err := s.uRepository.Update(&user); err != nil {
-		return *new(entities.User), err
+		return *new(entities.UserEntity), err
 	}
 	return user, nil
 }

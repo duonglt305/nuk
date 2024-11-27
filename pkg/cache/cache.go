@@ -14,6 +14,7 @@ type ICache interface {
 
 const (
 	RedisDriver = "redis"
+	MemDriver   = "mem"
 )
 
 var (

@@ -6,7 +6,7 @@ import (
 	"duonglt.net/internal/auth/domain/entities"
 )
 
-type UserModel struct {
+type User struct {
 	Id        uint64     `db:"id"`
 	Email     string     `db:"email"`
 	Password  string     `db:"password"`
@@ -16,12 +16,12 @@ type UserModel struct {
 	UpdatedAt *time.Time `db:"updated_at"`
 }
 
-func (m UserModel) Table() string {
+func (m User) Table() string {
 	return "users"
 }
 
-func (m UserModel) ToEntity() entities.User {
-	return entities.User{
+func (m User) ToEntity() entities.UserEntity {
+	return entities.UserEntity{
 		Id:        m.Id,
 		Email:     m.Email,
 		Password:  m.Password,
@@ -32,8 +32,8 @@ func (m UserModel) ToEntity() entities.User {
 	}
 }
 
-func (m UserModel) FromEntity(ent entities.User) any {
-	return UserModel{
+func (m User) FromEntity(ent entities.UserEntity) any {
+	return User{
 		Id:        ent.Id,
 		Email:     ent.Email,
 		Password:  ent.Password,

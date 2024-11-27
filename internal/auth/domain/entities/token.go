@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type Token struct {
+type TokenEntity struct {
 	ID        uint64    `json:"id"`
 	Uid       uint64    `json:"uid"`
 	Tid       *uint64   `json:"tid"`

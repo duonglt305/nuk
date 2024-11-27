@@ -21,10 +21,12 @@ type Router struct {
 
 func NewRouter(
 	port string,
+	root HttpHandler,
 	auth auth.HttpHandler,
 	authenticated auth.AuthMiddleware,
 ) *Router {
 	r := &Router{Mux: http.NewServeMux(), Port: port}
+	root.RegisterHandlers(r.Mux)
 	auth.RegisterHandlers(r.Mux, authenticated.Handle)
 	return r
 }

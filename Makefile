@@ -1,8 +1,7 @@
 .PHONY: init dev migration
 
 init:
-	go mod tidy
-	go mod vendor
+	go mod tidy && go mod vendor
 	go run github.com/google/wire/cmd/wire@latest gen ./internal
 	if [ ! -f .env ]; then cp .env.example .env; fi
 dev:

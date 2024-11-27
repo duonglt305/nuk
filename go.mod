@@ -1,6 +1,6 @@
 module duonglt.net
 
-go 1.23.0
+go 1.23.3
 
 require (
 	github.com/google/wire v0.6.0

@@ -26,19 +26,19 @@ var WireSet = wire.NewSet(
 	presentation.NewHttpHandler,
 )
 
-func ResolveUserRepository(db *sqlx.DB) repositories.UserRepository[models.UserModel, entities.User] {
-	return infrRepositories.NewUserRepository[models.UserModel](db)
+func ResolveUserRepository(db *sqlx.DB) repositories.UserRepository[models.User, entities.UserEntity] {
+	return infrRepositories.NewUserRepository[models.User](db)
 }
 
 // ResolveTokenManager function is used to resolve token service
-func ResolveTokenManager() jwt.TokenManager[entities.Token] {
-	return jwt.NewTokenManager[entities.Token]([]byte(viper.GetString("JWT_SECRET")))
+func ResolveTokenManager() jwt.TokenManager[entities.TokenEntity] {
+	return jwt.NewTokenManager[entities.TokenEntity]([]byte(viper.GetString("JWT_SECRET")))
 }
 
 // ResolveTokenService function is used to resolve auth service
 func ResolveTokenService(
 	sfManager *utils.SnowflakeManager,
-	jwtService jwt.TokenManager[entities.Token],
+	jwtService jwt.TokenManager[entities.TokenEntity],
 	tokenRepository repositories.ITokenRepository,
 ) services.TokenService {
 	return services.NewTokenService(

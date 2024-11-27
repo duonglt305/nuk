@@ -24,13 +24,13 @@ func (e ValidationError) Errors() map[string]string {
 }
 
 type Validator struct {
-	v     *validator.Validate
-	trans *ut.Translator
+	validate *validator.Validate
+	trans    *ut.Translator
 }
 
 var (
-	validate *Validator
-	once     sync.Once
+	v    *Validator
+	once sync.Once
 )
 
 // NewValidator creates a new instance of the Validator struct
@@ -38,14 +38,14 @@ func NewValidator(r *http.Request, params any) error {
 	once.Do(func() {
 		locale := en.New()
 		uni := ut.New(locale, locale)
-		v := validator.New(validator.WithRequiredStructEnabled())
+		validate := validator.New(validator.WithRequiredStructEnabled())
 		trans, ok := uni.GetTranslator("en")
 		if ok {
-			_ = enTrans.RegisterDefaultTranslations(v, trans)
+			_ = enTrans.RegisterDefaultTranslations(validate, trans)
 		}
-		validate = &Validator{v, &trans}
+		v = &Validator{validate, &trans}
 	})
-	return validate.exec(r, params)
+	return v.exec(r, params)
 }
 
 // exec is a method of the Validator struct that validates the given request and parameters
@@ -53,7 +53,7 @@ func (v Validator) exec(r *http.Request, params any) error {
 	if err := json.NewDecoder(r.Body).Decode(params); err != nil {
 		return err
 	}
-	if err := v.v.Struct(params); err != nil {
+	if err := v.validate.Struct(params); err != nil {
 		vErr := ValidationError{
 			errors: err.(validator.ValidationErrors).Translate(*v.trans),
 		}
