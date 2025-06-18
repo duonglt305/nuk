@@ -27,7 +27,7 @@ func NewRouter(
 ) *Router {
 	r := &Router{Mux: http.NewServeMux(), Port: port}
 	root.RegisterHandlers(r.Mux)
-	auth.RegisterHandlers(r.Mux, authenticated.Handle)
+	auth.RegisterHandlers(r.Mux, authenticated.Handler)
 	return r
 }
 

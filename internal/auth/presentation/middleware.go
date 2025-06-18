@@ -23,7 +23,7 @@ func NewAuthMiddleware(tokenService services.TokenService, cache cache.ICache) A
 	return AuthMiddleware{tokenService, cache}
 }
 
-func (m AuthMiddleware) Handle(next http.Handler) http.Handler {
+func (m AuthMiddleware) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, err := m.tokenService.ExtractRawToken(r)
 		if err != nil {
